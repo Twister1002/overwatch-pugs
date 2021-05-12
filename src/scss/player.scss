@@ -1,0 +1,35 @@
+.player {
+    position: relative;
+    border: 2px solid #FFFFFF;
+    width: 10em;
+    min-height: 5em;
+    margin: 1em 0;
+
+    header {
+        text-align: center;
+    }
+
+    .player-info {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+
+        .player-options {
+            text-align: center;
+        }
+
+        .ranks {
+            width: 100%;
+
+            .tank, .dps, .support {
+                width: 100%;
+                text-align: center; 
+
+                .icon {
+                    padding-right: .25em;
+                }
+            }
+        }
+    }
+}
