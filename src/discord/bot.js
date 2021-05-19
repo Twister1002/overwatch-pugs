@@ -144,7 +144,7 @@ client.on("message", (message) => {
             case "users": 
                 // Display all user's data
                 const allPlayers = getAllPlayerData();
-                response = `Users Registered: ${allPlayers.length}`;
+                response = `Users Registered: ${allPlayers.length}\n`;
 
                 allPlayers.forEach(p => {
                     response += `- ${p.discordName} (BTag: ${p.btag}, Tank: ${p.tank}, DPS: ${p.dps}, Support: ${p.support})\n`
