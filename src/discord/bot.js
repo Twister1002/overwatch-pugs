@@ -96,31 +96,8 @@ client.on("message", (message) => {
                 message.channel.send("Queue has been closed");
                 break;
             case "q": 
-                if (allowQueue) {
-                    if (isPlayerRegistered(message.author.tag)) {
-                        if (messageData.length === 0) {
-                            message.reply(`You need to queue for roles: ${allowedRoles.join(", ")}`)
-                        }
-                        else {
-                            const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
-                            const qRoles = messageData.filter(r => players[r] > 500);
-
-                            players.push({
-                                discordName: message.author.tag,
-                                queue: qRoles
-                            })
-
-                            playersInQueue = players;
-                            message.reply(`has queued for ${qRoles}`)
-                        }
-                    }
-                    else {
-                        message.reply("currently isn't registered. Use !pugs setinfo");
-                    }
-                }
-                else {
-                    message.reply("PUGs does not currently have a queue. Please wait for a mod to start the queue");
-                }
+                response = addPlayerToQueue(message.author.tag, messageData);
+                message.reply(response);
                 break;
             case "unq": 
                 if (allowQueue) {
@@ -141,47 +118,7 @@ client.on("message", (message) => {
                 message.channel.send(`Current players in queue: ${response}`)
                 break;
             case "startmatch":
-                // Place people in a match on teams
-                // Randomly choose map
-
-                // Compile list of players in Queue with their ranks for the Match method
-                const playerList = []
-                playersInQueue.forEach(p => {
-                    const playerInfo = getPlayerDataByDiscordTag(p.discordName);
-
-                    playerList.push({
-                        ...playerInfo,
-                        name: playerInfo.btag,
-                        queue: p.queue
-                    })
-                })
-
-                const teamData = CreateOverwatchMatch(playerList);
-                const randomMap = maps[getRandomInt(0, maps.length)];
-
-                response = `Map: ${randomMap}\n\n`;
-
-                teamData.forEach((team) => {
-                    response += `Team ${team.name} (${team.avgSR})\n`
-                    
-                    response += "\t- Tank\n"
-                    team.tank.forEach((t) => {
-                        response += `\t\t- ${t.name} (${t.discordName})\n`
-                    })
-
-                    response += "\t- DPS\n"
-                    team.dps.forEach((d) => {
-                        response += `\t\t- ${d.name} (${d.discordName})\n`
-                    })
-
-                    response += "\t- Support\n"
-                    team.support.forEach((s) => {
-                        response += `\t\t- ${s.name} (${s.discordName})\n`
-                    })
-
-                    response += "\n"
-                })
-
+                
                 console.log(response);
                 message.channel.send(response);
                 break;
@@ -203,45 +140,99 @@ client.on("message", (message) => {
                 message.channel.send(response);
                 break;
             case "testmatch":
-                testRandomPlayers()
-                const testTeamData = CreateOverwatchMatch(playersInQueue);
-                const testRandomMap = maps[getRandomInt(0, maps.length)];
+                const testPlayerData = getAllPlayerData();
+                allowQueue = true;
 
-                response = `Map: ${testRandomMap}\n\n`;
-
-                testTeamData.forEach((team) => {
-                    response += `Team ${team.name} (${team.avgSR})\n`
+                for (let i = 0; i < 12; i++) {
+                    const roles = allowedRoles.filter(r => testPlayerData[i][r] > 500);
+                    console.log(testPlayerData[i].btag, roles);
                     
-                    response += "\t- Tank\n"
-                    team.tank.forEach((t) => {
-                        response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
-                    })
+                    addPlayerToQueue(testPlayerData[i].discordName, roles);
+                }
+                allowQueue = false;
 
-                    response += "\t- DPS\n"
-                    team.dps.forEach((d) => {
-                        response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
-                    })
-
-                    response += "\t- Support\n"
-                    team.support.forEach((s) => {
-                        response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
-                    })
-
-                    response += "\n"
-                })
-
-                console.log(response);
+                response = createTeamResponse();
                 message.channel.send(response);
                 break;
         }
     }
 })
 
-
-function isPlayerRegistered(discordName) {
+function addPlayerToQueue(discordName, roles) {
+    let response = "";
     const player = getPlayerDataByDiscordTag(discordName);
+    const filteredRoles = roles.filter(r => player[r] > 500);
+    
+    if (allowQueue) {
+        if (roles.length > 0) {
+            const inQueue = playersInQueue.filter(q => q.discordName !== discordName);
+            inQueue.push({
+                discordName,
+                queue: filteredRoles
+            })
 
-    return player ? true : false;
+            playersInQueue = inQueue;
+            response = `is queued for ${filteredRoles.join(", ")}.`
+        }
+        else {
+            response = "You must provide a role to queue for."
+        }
+    }
+    else {
+        response = "The queue for PUGs is not open. Please wait for the queue to open."
+    }
+
+    return response;
+}
+
+function createTeamResponse() {
+    let response = "";
+
+    if (!allowQueue) {
+        const playerList = []
+        const testRandomMap = maps[getRandomInt(0, maps.length)];
+
+        // Put all players in a list with all of their data
+        playersInQueue.forEach(p => {
+            const playerInfo = getPlayerDataByDiscordTag(p.discordName);
+
+            playerList.push({
+                ...playerInfo,
+                name: playerInfo.btag,
+                queue: p.queue
+            })
+        })
+        
+        // Place users in the match
+        const teams = CreateOverwatchMatch(playerList);
+                    
+        response = `Map: ${testRandomMap}\n\n`;
+        teams.forEach((team) => {
+            response += `Team ${team.name} (${team.avgSR})\n`
+            
+            response += "\t- Tank\n"
+            team.tank.forEach((t) => {
+                response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
+            })
+
+            response += "\t- DPS\n"
+            team.dps.forEach((d) => {
+                response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
+            })
+
+            response += "\t- Support\n"
+            team.support.forEach((s) => {
+                response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
+            })
+
+            response += "\n"
+        })
+    }
+    else {
+        response = "Queue must be closed to start a match."
+    }
+
+    return response;
 }
 
 function loadFile(fileName) {
@@ -312,21 +303,6 @@ async function savePlayerPugData(discordName, btag, support, tank, dps) {
     catch(e) {
         console.error("Unable to save player data...")
         console.log(playerData)
-    }
-}
-
-function testRandomPlayers() {
-    const players = require("../data/overwatchpugs.json");
-
-    for (let i = 0; i < 12; i++) {
-        const roles = allowedRoles.filter(r => players[i][r] > 500);
-        console.log(players[i].btag, roles);
-        
-        playersInQueue[i] = {
-            ...players[i],
-            name: players[i].btag,
-            queue: [...roles]
-        }
     }
 }
 
