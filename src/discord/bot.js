@@ -5,6 +5,7 @@ const { getRandomInt, parseToNumber } = require("./utilities");
 const CreateOverwatchMatch = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
+const pugsCommands = require("../data/commands.json");
 
 const { Client } = require("discord.js");
 const client = new Client();
@@ -31,27 +32,29 @@ function loginBot() {
 
 loginBot();
 
-client.on("ready", (data) => {
+client.on("ready", () => {
     console.log(client.user.tag);
     client.user.setActivity('!pugs', { type: 'LISTENING'} )
 })
 
 client.on("message", (message) => {
-    const messageData = message.content.split(" ");
     let response = "";
+    const messageData = message.content.split(" ");
+    const mainCommand = messageData.shift().toLowerCase();
+    const subCommand = messageData.shift().toLowerCase();
+    if (mainCommand === "!pugs") {
+        if (!isValidCommand(subCommand)) {
+            return;
+        }
 
-    if (messageData.shift().toLowerCase() === "!pugs") {
-        switch (messageData.shift().toLowerCase()) {
+        if (!canUseCommand(subCommand, message.member)) {
+            message.reply("You do not have permissions to use this command");
+            return;
+        }
+
+        switch (subCommand) {
             case "info": 
-                let userTag = null;
-                if (message.mentions.users.first()) {
-                    userTag = message.mentions.users.first().tag
-                }
-                else {
-                    userTag = message.author.tag;
-                }
-                
-                console.log(userTag);
+                let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
                 const playerData = getPlayerDataByDiscordTag(userTag)
 
                 if (playerData) {
@@ -85,24 +88,13 @@ client.on("message", (message) => {
 
                 break;
             case "startq":
-                if (isUserMod(message.member)) {
-                    // Make sure the author is only a mod!
-                    playersInQueue = [];
-                    allowQueue = true;
-                    message.channel.send("Queue has been opened");
-                }
-                else {
-                    message.reply("Only a mod may use this command");
-                }
+                playersInQueue = [];
+                allowQueue = true;
+                message.channel.send("Queue has been opened");
                 break;
             case "stopq": 
-                if (isUserMod(message.member)) {
-                    allowQueue = false;
-                    message.channel.send("Queue has been closed");
-                }
-                else {
-                    message.reply("Only a mod may use this command");
-                }
+                allowQueue = false;
+                message.channel.send("Queue has been closed");
                 break;
             case "q": 
                 response = addPlayerToQueue(message.author.tag, messageData);
@@ -127,13 +119,9 @@ client.on("message", (message) => {
                 message.channel.send(`Current players in queue: ${response}`)
                 break;
             case "startmatch":
-                if (isUserMod(message.member)) {
-                    console.log(response);
-                    message.channel.send(response);
-                }
-                else {
-                    message.reply("Only a mod may use this command");
-                }
+                response = createMatch();
+                console.log(response);
+                message.channel.send(response);
                 break;
             case "maps": 
                 // Display all map's name
@@ -154,8 +142,8 @@ client.on("message", (message) => {
                 break;
             case "testmatch":
                 const testPlayerData = getAllPlayerData();
-                allowQueue = true;
 
+                allowQueue = true;
                 for (let i = 0; i < 12; i++) {
                     const roles = allowedRoles.filter(r => testPlayerData[i][r] > 500);
                     console.log(testPlayerData[i].btag, roles);
@@ -164,7 +152,7 @@ client.on("message", (message) => {
                 }
                 allowQueue = false;
 
-                response = createTeamResponse();
+                response = createMatch();
                 message.channel.send(response);
                 break;
         }
@@ -198,48 +186,53 @@ function addPlayerToQueue(discordName, roles) {
     return response;
 }
 
-function createTeamResponse() {
+function createMatch() {
     let response = "";
 
     if (!allowQueue) {
-        const playerList = []
-        const testRandomMap = maps[getRandomInt(0, maps.length)];
+        if (playersInQueue.length >= 12) {
+            const playerList = []
+            const testRandomMap = maps[getRandomInt(0, maps.length)];
 
-        // Put all players in a list with all of their data
-        playersInQueue.forEach(p => {
-            const playerInfo = getPlayerDataByDiscordTag(p.discordName);
+            // Put all players in a list with all of their data
+            playersInQueue.forEach(p => {
+                const playerInfo = getPlayerDataByDiscordTag(p.discordName);
 
-            playerList.push({
-                ...playerInfo,
-                name: playerInfo.btag,
-                queue: p.queue
+                playerList.push({
+                    ...playerInfo,
+                    name: playerInfo.btag,
+                    queue: p.queue
+                })
             })
-        })
-        
-        // Place users in the match
-        const teams = CreateOverwatchMatch(playerList);
-                    
-        response = `Map: ${testRandomMap}\n\n`;
-        teams.forEach((team) => {
-            response += `Team ${team.name} (${team.avgSR})\n`
             
-            response += "\t- Tank\n"
-            team.tank.forEach((t) => {
-                response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
-            })
+            // Place users in the match
+            const teams = CreateOverwatchMatch(playerList);
+                        
+            response = `Map: ${testRandomMap}\n\n`;
+            teams.forEach((team) => {
+                response += `Team ${team.name} (${team.avgSR})\n`
+                
+                response += "\t- Tank\n"
+                team.tank.forEach((t) => {
+                    response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
+                })
 
-            response += "\t- DPS\n"
-            team.dps.forEach((d) => {
-                response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
-            })
+                response += "\t- DPS\n"
+                team.dps.forEach((d) => {
+                    response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
+                })
 
-            response += "\t- Support\n"
-            team.support.forEach((s) => {
-                response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
-            })
+                response += "\t- Support\n"
+                team.support.forEach((s) => {
+                    response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
+                })
 
-            response += "\n"
-        })
+                response += "\n"
+            })
+        }
+        else { 
+            response = "Must have at least 12 players in queue to start a match."
+        }
     }
     else {
         response = "Queue must be closed to start a match."
@@ -248,13 +241,30 @@ function createTeamResponse() {
     return response;
 }
 
-function isUserMod(discordAuthor) {
+function isUserMod(discordUser) {
+
     const permissionLevels = [
         "Events Staff",
         "Moderator"
     ]
     
-    return discordAuthor.roles.cache.some(r => permissionLevels.includes(r.name));
+    return discordUser.roles.cache.some(r => permissionLevels.includes(r.name));
+}
+
+function isValidCommand(command) {
+    const theCommand = pugsCommands.find(c => c.command === command);
+
+    return theCommand ? true : false
+}
+
+function canUseCommand(command, discordUser) {
+    const theCommand = pugsCommands.find(c => c.command === command);
+
+    if (theCommand && theCommand.isModCommand && !isUserMod(discordUser)) {
+        return false;
+    }
+
+    return true;
 }
 
 function loadFile(fileName) {
