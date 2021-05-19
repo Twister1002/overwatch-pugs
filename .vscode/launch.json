@@ -7,11 +7,23 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "App Server",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\server.js",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Discord Bot",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\src\\discord\\bot.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

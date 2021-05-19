@@ -1,7 +1,10 @@
-const playerData = require("./src/data/players.json");
+const { getRandomInt } = require("./utilities");
 
 const config = {
-    teamMax: 6,
+    teamMax: 2,
+    playerMax: 6,
+    maxSRDiff: 35,
+    teamNames: ["Blue", "Red"],
     roles: [
         {
             name: "tank",
@@ -18,35 +21,21 @@ const config = {
     ]
 }
 
-const roleBuckets = {
-    tank: [],
-    dps: [],
-    support: []
-}
-
-const soloPlayers = {
-    tank: [],
-    dps: [],
-    support: []
-}
-
-function placePlayersInBuckets(players) {
-    // Sort the players in their buckets: Solo, or role que
+function placePlayersInBuckets(players, soloPlayers, roleBuckets) {
+    // Sort the players in their buckets: Solo, or role queue
     players.sort((a, b) => a.queue.length - b.queue.length);
 
     players.forEach(p => {
         switch(p.queue.length) {
             case 1: 
-                soloPlayers[p.queue[0]].push(p);
+                soloPlayers[p.queue[0]].push({...p});
                 break;
             case 2:
             case 3:
-                p.queue.forEach(q => roleBuckets[q].push(p));
+                p.queue.forEach(q => roleBuckets[q].push({...p}));
                 break;
         }
     })
-
-    console.log(roleBuckets);
 }
 
 function placeSoloPlayers(teams, players) {
@@ -56,11 +45,12 @@ function placeSoloPlayers(teams, players) {
         const playersInRole = players[role];
 
         playersInRole.forEach(player => {
-            const team = getRandomInt(0, teams.length);
+            const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
+            const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
 
-            teams[team].players.push(player);
-            teams[team][role].push(player);
-            teams[team].mmr += player[role];
+            randomTeam.players.push(player);
+            randomTeam[role].push(player);
+            randomTeam.mmr += player[role];
         })
 
         delete players[role]
@@ -68,10 +58,17 @@ function placeSoloPlayers(teams, players) {
 }
 
 function placePlayersOnTeam(teams, roleBuckets) {
+    let timesInLoop = 0;
+
     // While all teams have not been filled.
-    while (!teams.every(team => team.players.length >= config.teamMax)) {
+    while (!teams.every(team => team.players.length >= config.playerMax)) {
+        timesInLoop++;
+        if (timesInLoop > 200) {
+            break;
+        }
+
         // Find teams that need players.
-        const teamsNeedPlayers = teams.filter(t => t.players.length < config.teamMax);
+        const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
 
         // Grab random team
         const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
@@ -84,9 +81,8 @@ function placePlayersOnTeam(teams, roleBuckets) {
         if (roleNeeded) {
             // Find random player with role
             if (roleBuckets[roleNeeded].length === 0) {
-                debugger;
-                console.error(`No players in bucket, ${roleNeeded}`)
-                break;
+                console.error(`No players in bucket: ${roleNeeded}`)
+                continue;
             }
 
             const randomPlayer = {...roleBuckets[roleNeeded][getRandomInt(0, roleBuckets[roleNeeded].length)]};
@@ -104,37 +100,6 @@ function placePlayersOnTeam(teams, roleBuckets) {
             }
         }
     }
-}
-
-function makeTeams(maxTeams) {
-    const teams = [];
-
-    for (let i = 0; i < maxTeams; i++) {
-        teams[i] = {
-            mmr: 0,
-            tank: [],
-            dps: [],
-            support: [],
-            players: []
-        };
-    }
-    
-    placeSoloPlayers(teams, soloPlayers);
-    placePlayersOnTeam(teams, roleBuckets);
-
-    teams.forEach((t, iT) => {
-        console.log(`Team ${iT} - ${t.mmr}`);
-        console.log(t.players.map(p => console.log(p.name)));
-    })
-
-    return teams;
-}
-
-//The maximum is exclusive and the minimum is inclusive
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min); 
 }
 
 function getAvailableRoles(team) {
@@ -156,7 +121,52 @@ function removePlayerFromBucket(player, buckets) {
     })
 }
 
-placePlayersInBuckets(playerData);
-const teams = makeTeams(2);
+function CreateOverwatchMatch(playerData) {
+    let teams = [];
+    const roleBuckets = {
+        tank: [],
+        dps: [],
+        support: []
+    }
+    
+    const soloPlayers = {
+        tank: [],
+        dps: [],
+        support: []
+    }
 
-console.log(teams);
+    for (let i = 0; i < config.teamMax; i++) {
+        teams[i] = {
+            mmr: 0,
+            name: config.teamNames[i],
+            tank: [],
+            dps: [],
+            support: [],
+            players: []
+        };
+    }
+    
+    placePlayersInBuckets(playerData, soloPlayers, roleBuckets);
+    placeSoloPlayers(teams, soloPlayers);
+    placePlayersOnTeam(teams, roleBuckets);
+
+    // Check for match evenness
+    const teamMMRDiff = (teams[0].mmr / config.teamMax) - (teams[1].mmr / config.teamMax);
+    if (!teams.every(t => t.players.length == config.playerMax)) {
+        console.log(`Not enough players in a speciifc team. Redoing teams.`);
+        teams = CreateOverwatchMatch(playerData);
+    }
+    else if (teamMMRDiff > config.maxSRDiff || teamMMRDiff < -config.maxSRDiff) {
+        console.log(`Unbalanced teams: Team 1 (${teams[0].mmr}) vs Team 2 (${teams[1].mmr})`);
+        teams = CreateOverwatchMatch(playerData);
+    }
+
+    // Add the average SR in the data
+    teams.forEach(t => {
+        t.avgSR = Math.floor(t.mmr / t.players.length);
+    })
+    
+    return teams;
+}
+
+module.exports = CreateOverwatchMatch;
