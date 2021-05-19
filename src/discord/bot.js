@@ -11,6 +11,25 @@ const client = new Client();
 
 let allowQueue = false;
 let playersInQueue = [];
+let loginAttempts = 0;
+let loginWaitInterval = 10 * 1000;
+
+function loginBot() {
+    setTimeout(() => {
+        client.login(process.env.DISCORDJS_BOT_TOKEN)
+        .then(() => {
+            console.log(`Bot has logged in ${client.user.tag}`)
+        })
+        .catch(err => {
+            loginAttempts++;
+            console.error(`Failed login attempt ${loginAttempts}`)
+            console.log(err);
+            loginBot();
+        });
+    }, loginAttempts === 0 ? 0 : loginWaitInterval)
+}
+
+loginBot();
 
 client.on("ready", (data) => {
     console.log(client.user.tag);
@@ -175,7 +194,7 @@ client.on("message", (message) => {
             case "users": 
                 // Display all user's data
                 const allPlayers = getAllPlayerData();
-                response = "";
+                response = `Users Registered: ${allPlayers.length}`;
 
                 allPlayers.forEach(p => {
                     response += `- ${p.discordName} (BTag: ${p.btag}, Tank: ${p.tank}, DPS: ${p.dps}, Support: ${p.support})\n`
@@ -195,17 +214,17 @@ client.on("message", (message) => {
                     
                     response += "\t- Tank\n"
                     team.tank.forEach((t) => {
-                        response += `\t\t- ${t.name} (${t.discordName})\n`
+                        response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
                     })
 
                     response += "\t- DPS\n"
                     team.dps.forEach((d) => {
-                        response += `\t\t- ${d.name} (${d.discordName})\n`
+                        response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
                     })
 
                     response += "\t- Support\n"
                     team.support.forEach((s) => {
-                        response += `\t\t- ${s.name} (${s.discordName})\n`
+                        response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
                     })
 
                     response += "\n"
@@ -218,7 +237,6 @@ client.on("message", (message) => {
     }
 })
 
-client.login(process.env.DISCORDJS_BOT_TOKEN)
 
 function isPlayerRegistered(discordName) {
     const player = getPlayerDataByDiscordTag(discordName);
@@ -232,10 +250,10 @@ function loadFile(fileName) {
 
     if (fs.existsSync(filePath)) {
         fileData = fs.readFileSync(filePath);
-        const isJSON = fileName.substr(fileName.lastIndexOf(".")).toLowerCase() === "json" ? true : false;
+        const isJSON = fileName.substr(fileName.lastIndexOf(".")).toLowerCase().includes("json") ? true : false;
 
         if (isJSON) {
-            fileData = fileData.toJSON();
+            fileData = JSON.parse(fileData);
         }
     }
 
@@ -253,9 +271,7 @@ function saveFile(fileName, data) {
 }
 
 function getPlayerDataByDiscordTag(discordName) {
-    const pugData = loadFile("overwatchpugs.json");
-
-    return pugData.find(p => p.discordName === discordName);
+    return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
 function getAllPlayerData() {
@@ -311,5 +327,35 @@ function testRandomPlayers() {
             name: players[i].btag,
             queue: [...roles]
         }
+    }
+}
+
+function getSRTier(sr) {
+    if (sr < 1500) {
+        // Bronze
+        return "B";
+    }
+    else if (sr >= 1500 && sr < 2000) {
+        // Silver
+        return "S";
+    }
+    else if (sr >= 2000 && sr < 2500) {
+        // Gold
+        return "G";
+    }
+    else if (sr >= 2500 && sr < 3000) {
+        // Plat
+        return "P";
+    }
+    else if (sr >= 3000 && sr < 3500) {
+        // Masters
+        return "D";
+    }
+    else if(sr >= 3500 && sr < 4000) {
+        return "M";
+    }
+    else {
+        // GM
+        return "GM";
     }
 }
