@@ -85,15 +85,24 @@ client.on("message", (message) => {
 
                 break;
             case "startq":
-                // Make sure the author is only a mod!
-                // { discordName: blah, queue: [] }
-                playersInQueue = [];
-                allowQueue = true;
-                message.channel.send("Queue has been opened");
+                if (isUserMod(message.member)) {
+                    // Make sure the author is only a mod!
+                    playersInQueue = [];
+                    allowQueue = true;
+                    message.channel.send("Queue has been opened");
+                }
+                else {
+                    message.reply("Only a mod may use this command");
+                }
                 break;
             case "stopq": 
-                allowQueue = false;
-                message.channel.send("Queue has been closed");
+                if (isUserMod(message.member)) {
+                    allowQueue = false;
+                    message.channel.send("Queue has been closed");
+                }
+                else {
+                    message.reply("Only a mod may use this command");
+                }
                 break;
             case "q": 
                 response = addPlayerToQueue(message.author.tag, messageData);
@@ -118,9 +127,13 @@ client.on("message", (message) => {
                 message.channel.send(`Current players in queue: ${response}`)
                 break;
             case "startmatch":
-                
-                console.log(response);
-                message.channel.send(response);
+                if (isUserMod(message.member)) {
+                    console.log(response);
+                    message.channel.send(response);
+                }
+                else {
+                    message.reply("Only a mod may use this command");
+                }
                 break;
             case "maps": 
                 // Display all map's name
@@ -233,6 +246,15 @@ function createTeamResponse() {
     }
 
     return response;
+}
+
+function isUserMod(discordAuthor) {
+    const permissionLevels = [
+        "Events Staff",
+        "Moderator"
+    ]
+    
+    return discordAuthor.roles.cache.some(r => permissionLevels.includes(r.name));
 }
 
 function loadFile(fileName) {
