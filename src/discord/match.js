@@ -21,44 +21,6 @@ const config = {
     ]
 }
 
-function placePlayersInBuckets(players, soloPlayers, roleBuckets) {
-    // Sort the players in their buckets: Solo, or role queue
-    players.sort((a, b) => a.queue.length - b.queue.length);
-
-    players.forEach(p => {
-        // switch(p.queue.length) {
-        //     case 1: 
-        //         soloPlayers[p.queue[0]].push({...p});
-        //         break;
-        //     case 2:
-        //     case 3:
-        //         p.queue.forEach(q => roleBuckets[q].push({...p}));
-        //         break;
-        // }
-        
-        p.queue.forEach(q => roleBuckets[q].push({...p}));
-    })
-}
-
-// function placeSoloPlayers(teams, players) {
-//     const roles = Object.keys(players);
-
-//     roles.forEach(role => {
-//         const playersInRole = players[role];
-
-//         playersInRole.forEach(player => {
-//             const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
-//             const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
-
-//             randomTeam.players.push(player);
-//             randomTeam[role].push(player);
-//             randomTeam.mmr += player[role];
-//         })
-
-//         delete players[role]
-//     })
-// }
-
 function placePlayersOnTeam(teams, roleBuckets) {
     let timesInLoop = 0;
 
@@ -132,12 +94,6 @@ function CreateOverwatchMatch(playerData) {
             dps: [],
             support: []
         }
-        
-        const soloPlayers = {
-            tank: [],
-            dps: [],
-            support: []
-        }
 
         for (let i = 0; i < config.teamMax; i++) {
             teams[i] = {
@@ -149,9 +105,8 @@ function CreateOverwatchMatch(playerData) {
                 players: []
             };
         }
-    
-        placePlayersInBuckets(playerData, soloPlayers, roleBuckets);
-        // placeSoloPlayers(teams, soloPlayers);
+
+        playerData.forEach(p => p.queue.forEach(q => roleBuckets[q].push(p)));
         placePlayersOnTeam(teams, roleBuckets);
 
         // Check for match evenness
