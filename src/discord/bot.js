@@ -1,7 +1,7 @@
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-const { getRandomInt, parseToNumber } = require("./utilities");
+const { getRandomInt, parseToNumber, getSRTier } = require("./utilities");
 const CreateOverwatchMatch = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -41,8 +41,9 @@ client.on("message", (message) => {
     let response = "";
     const messageData = message.content.split(" ");
     const mainCommand = messageData.shift().toLowerCase();
-    const subCommand = messageData.shift().toLowerCase();
+
     if (mainCommand === "!pugs") {
+        const subCommand = messageData.shift().toLowerCase();
         if (!isValidCommand(subCommand)) {
             return;
         }
@@ -90,7 +91,7 @@ client.on("message", (message) => {
             case "startq":
                 playersInQueue = [];
                 allowQueue = true;
-                message.channel.send("Queue has been opened");
+                message.channel.send("Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles");
                 break;
             case "stopq": 
                 allowQueue = false;
@@ -111,12 +112,12 @@ client.on("message", (message) => {
                 }
                 break
             case "lobby": 
-                response = "";
+                response = `${playersInQueue.length} players in queue:\n`;
                 playersInQueue.forEach(p => {
                     response += `\n- ${p.discordName} (${p.queue.join(",")})`
                 })
 
-                message.channel.send(`Current players in queue: ${response}`)
+                message.channel.send(response)
                 break;
             case "startmatch":
                 response = createMatch();
@@ -155,6 +156,19 @@ client.on("message", (message) => {
                 response = createMatch();
                 message.channel.send(response);
                 break;
+            case "commands":
+                const availableCommands = pugsCommands.filter(c => {
+                    if (c.isModCommand && isUserMod(message.member)) {
+                        return c;
+                    }
+                    else if (!c.isModCommand) {
+                        return c;
+                    }
+                    
+                }).map(c => c.command).join(", ");
+
+                message.reply(`commands you can use: ${availableCommands}`)
+                break;
         }
     }
 })
@@ -162,7 +176,7 @@ client.on("message", (message) => {
 function addPlayerToQueue(discordName, roles) {
     let response = "";
     const player = getPlayerDataByDiscordTag(discordName);
-    const filteredRoles = roles.filter(r => player[r] > 500);
+    const filteredRoles = roles.filter(r => player[r.toLowerCase()] > 500).map(r => r.toLowerCase());
     
     if (allowQueue) {
         if (roles.length > 0) {
@@ -190,24 +204,24 @@ function createMatch() {
     let response = "";
 
     if (!allowQueue) {
-        if (playersInQueue.length >= 12) {
-            const playerList = []
-            const testRandomMap = maps[getRandomInt(0, maps.length)];
+        const playerList = []
+        const testRandomMap = maps[getRandomInt(0, maps.length)];
 
-            // Put all players in a list with all of their data
-            playersInQueue.forEach(p => {
-                const playerInfo = getPlayerDataByDiscordTag(p.discordName);
+        // Put all players in a list with all of their data
+        playersInQueue.forEach(p => {
+            const playerInfo = getPlayerDataByDiscordTag(p.discordName);
 
-                playerList.push({
-                    ...playerInfo,
-                    name: playerInfo.btag,
-                    queue: p.queue
-                })
+            playerList.push({
+                ...playerInfo,
+                name: playerInfo.btag,
+                queue: p.queue
             })
-            
-            // Place users in the match
-            const teams = CreateOverwatchMatch(playerList);
-                        
+        })
+        
+        // Place users in the match
+        const teams = CreateOverwatchMatch(playerList);
+
+        if (teams.length === 2) {
             response = `Map: ${testRandomMap}\n\n`;
             teams.forEach((team) => {
                 response += `Team ${team.name} (${team.avgSR})\n`
@@ -230,8 +244,8 @@ function createMatch() {
                 response += "\n"
             })
         }
-        else { 
-            response = "Must have at least 12 players in queue to start a match."
+        else {
+            response = "Not enough players are available for this queue. Please restart the queue.";
         }
     }
     else {
@@ -242,13 +256,13 @@ function createMatch() {
 }
 
 function isUserMod(discordUser) {
-
     const permissionLevels = [
         "Events Staff",
         "Moderator"
     ]
     
-    return discordUser.roles.cache.some(r => permissionLevels.includes(r.name));
+    // return discordUser.roles.cache.some(r => permissionLevels.includes(r.name));
+    return true;
 }
 
 function isValidCommand(command) {
@@ -335,35 +349,5 @@ async function savePlayerPugData(discordName, btag, support, tank, dps) {
     catch(e) {
         console.error("Unable to save player data...")
         console.log(playerData)
-    }
-}
-
-function getSRTier(sr) {
-    if (sr < 1500) {
-        // Bronze
-        return "B";
-    }
-    else if (sr >= 1500 && sr < 2000) {
-        // Silver
-        return "S";
-    }
-    else if (sr >= 2000 && sr < 2500) {
-        // Gold
-        return "G";
-    }
-    else if (sr >= 2500 && sr < 3000) {
-        // Plat
-        return "P";
-    }
-    else if (sr >= 3000 && sr < 3500) {
-        // Masters
-        return "D";
-    }
-    else if(sr >= 3500 && sr < 4000) {
-        return "M";
-    }
-    else {
-        // GM
-        return "GM";
     }
 }

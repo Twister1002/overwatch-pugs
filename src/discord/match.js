@@ -26,36 +26,38 @@ function placePlayersInBuckets(players, soloPlayers, roleBuckets) {
     players.sort((a, b) => a.queue.length - b.queue.length);
 
     players.forEach(p => {
-        switch(p.queue.length) {
-            case 1: 
-                soloPlayers[p.queue[0]].push({...p});
-                break;
-            case 2:
-            case 3:
-                p.queue.forEach(q => roleBuckets[q].push({...p}));
-                break;
-        }
+        // switch(p.queue.length) {
+        //     case 1: 
+        //         soloPlayers[p.queue[0]].push({...p});
+        //         break;
+        //     case 2:
+        //     case 3:
+        //         p.queue.forEach(q => roleBuckets[q].push({...p}));
+        //         break;
+        // }
+        
+        p.queue.forEach(q => roleBuckets[q].push({...p}));
     })
 }
 
-function placeSoloPlayers(teams, players) {
-    const roles = Object.keys(players);
+// function placeSoloPlayers(teams, players) {
+//     const roles = Object.keys(players);
 
-    roles.forEach(role => {
-        const playersInRole = players[role];
+//     roles.forEach(role => {
+//         const playersInRole = players[role];
 
-        playersInRole.forEach(player => {
-            const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
-            const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
+//         playersInRole.forEach(player => {
+//             const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
+//             const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
 
-            randomTeam.players.push(player);
-            randomTeam[role].push(player);
-            randomTeam.mmr += player[role];
-        })
+//             randomTeam.players.push(player);
+//             randomTeam[role].push(player);
+//             randomTeam.mmr += player[role];
+//         })
 
-        delete players[role]
-    })
-}
+//         delete players[role]
+//     })
+// }
 
 function placePlayersOnTeam(teams, roleBuckets) {
     let timesInLoop = 0;
@@ -63,7 +65,7 @@ function placePlayersOnTeam(teams, roleBuckets) {
     // While all teams have not been filled.
     while (!teams.every(team => team.players.length >= config.playerMax)) {
         timesInLoop++;
-        if (timesInLoop > 200) {
+        if (timesInLoop > 20) {
             break;
         }
 
@@ -123,48 +125,54 @@ function removePlayerFromBucket(player, buckets) {
 
 function CreateOverwatchMatch(playerData) {
     let teams = [];
-    const roleBuckets = {
-        tank: [],
-        dps: [],
-        support: []
-    }
-    
-    const soloPlayers = {
-        tank: [],
-        dps: [],
-        support: []
-    }
 
-    for (let i = 0; i < config.teamMax; i++) {
-        teams[i] = {
-            mmr: 0,
-            name: config.teamNames[i],
+    if (playerData.length >= (config.playerMax * config.teamMax)) {
+        const roleBuckets = {
             tank: [],
             dps: [],
-            support: [],
-            players: []
-        };
-    }
+            support: []
+        }
+        
+        const soloPlayers = {
+            tank: [],
+            dps: [],
+            support: []
+        }
+
+        for (let i = 0; i < config.teamMax; i++) {
+            teams[i] = {
+                mmr: 0,
+                name: config.teamNames[i],
+                tank: [],
+                dps: [],
+                support: [],
+                players: []
+            };
+        }
     
-    placePlayersInBuckets(playerData, soloPlayers, roleBuckets);
-    placeSoloPlayers(teams, soloPlayers);
-    placePlayersOnTeam(teams, roleBuckets);
+        placePlayersInBuckets(playerData, soloPlayers, roleBuckets);
+        // placeSoloPlayers(teams, soloPlayers);
+        placePlayersOnTeam(teams, roleBuckets);
 
-    // Check for match evenness
-    const teamMMRDiff = (teams[0].mmr / config.teamMax) - (teams[1].mmr / config.teamMax);
-    if (!teams.every(t => t.players.length == config.playerMax)) {
-        console.log(`Not enough players in a speciifc team. Redoing teams.`);
-        teams = CreateOverwatchMatch(playerData);
-    }
-    else if (teamMMRDiff > config.maxSRDiff || teamMMRDiff < -config.maxSRDiff) {
-        console.log(`Unbalanced teams: Team 1 (${teams[0].mmr}) vs Team 2 (${teams[1].mmr})`);
-        teams = CreateOverwatchMatch(playerData);
-    }
+        // Check for match evenness
+        const teamMMRDiff = (teams[0].mmr / config.teamMax) - (teams[1].mmr / config.teamMax);
+        if (!teams.every(t => t.players.length == config.playerMax)) {
+            console.log(`Not enough players in a speciifc team. Redoing teams.`);
+            teams = CreateOverwatchMatch(playerData);
+        }
+        else if (teamMMRDiff > config.maxSRDiff || teamMMRDiff < -config.maxSRDiff) {
+            console.log(`Unbalanced teams: Team 1 (${teams[0].mmr}) vs Team 2 (${teams[1].mmr})`);
+            teams = CreateOverwatchMatch(playerData);
+        }
 
-    // Add the average SR in the data
-    teams.forEach(t => {
-        t.avgSR = Math.floor(t.mmr / t.players.length);
-    })
+        // Add the average SR in the data
+        teams.forEach(t => {
+            t.avgSR = Math.floor(t.mmr / t.players.length);
+        })
+    }
+    else {
+        console.log("Not enough players to make a match. Please restart queue");
+    }
     
     return teams;
 }

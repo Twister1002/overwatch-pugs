@@ -19,6 +19,10 @@
         "command": "setinfo",
         "isModCommand": false
     },
+    {
+        "command": "commands",
+        "isModCommand": false
+    },
     
     {
         "command": "q",
