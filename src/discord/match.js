@@ -1,8 +1,9 @@
 const { getRandomInt } = require("./utilities");
+const overwatchMaps = require("../data/maps.json");
 
 const config = {
-    teamMax: 2,
-    playerMax: 6,
+    maxTeams: 2,
+    maxPlayersOnTeam: 6,
     maxSRDiff: 35,
     teamNames: ["Blue", "Red"],
     roles: [
@@ -21,115 +22,142 @@ const config = {
     ]
 }
 
-function placePlayersOnTeam(teams, roleBuckets) {
-    let timesInLoop = 0;
-
-    // While all teams have not been filled.
-    while (!teams.every(team => team.players.length >= config.playerMax)) {
-        timesInLoop++;
-        if (timesInLoop > 20) {
-            break;
-        }
-
-        // Find teams that need players.
-        const teamsNeedPlayers = teams.filter(t => t.players.length < config.playerMax);
-
-        // Grab random team
-        const randomTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
-
-        // Get available roles in team.
-        const availableRoles = getAvailableRoles(randomTeam);
-        const roleNeeded = availableRoles[getRandomInt(0, availableRoles.length)];
-
-        // Error coming from availableRoles where 0 roles will be returned.
-        if (roleNeeded) {
-            // Find random player with role
-            if (roleBuckets[roleNeeded].length === 0) {
-                console.error(`No players in bucket: ${roleNeeded}`)
-                continue;
-            }
-
-            const randomPlayer = {...roleBuckets[roleNeeded][getRandomInt(0, roleBuckets[roleNeeded].length)]};
-
-            if (randomPlayer) {
-                randomTeam[roleNeeded].push(randomPlayer);
-                randomTeam.players.push(randomPlayer);
-                randomTeam.mmr += randomPlayer[roleNeeded];
-
-                // Clean up all roles with player in role
-                removePlayerFromBucket(randomPlayer, roleBuckets);
-            }
-            else {
-                console.error("Attempting to select player that doesn't exist!");
-            }
-        }
+function createOverWatchMatch(queuedPlayers) { 
+    const matchData = {
+        teams: [],
+        map: "",
+        responseMessage: "",
+        hasError: false
     }
-}
+    const playersNeeded = config.maxTeams * config.maxPlayersOnTeam;
 
-function getAvailableRoles(team) {
-    const availableRoles = config.roles.filter(role => team[role.name].length < role.max);
-    const roleNames = availableRoles.map(r => r.name);
+    if (queuedPlayers.length >= playersNeeded) {
+        createTeams(matchData.teams);
+        matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
+        const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
 
-    return roleNames;
-}
-
-function removePlayerFromBucket(player, buckets) {
-    const roles = Object.keys(buckets);
-    
-    roles.forEach(role => {
-        const playerI = buckets[role].findIndex(p => p.name === player.name);
-
-        if (playerI > -1) {
-            buckets[role].splice(playerI, 1);
+        const teamSRDiff = Math.floor((matchData.teams.reduce((totalSR, currentTeam) => currentTeam.avgSR())) / 2);
+        if (teamSRDiff > config.maxSRDiff && teamSRDiff < -config.maxSRDiff) {
+            matchData.hasError = true;
+            matchData.responseMessage = `SR is too great of difference at ${teamSRDiff}`;
         }
-    })
-}
-
-function CreateOverwatchMatch(playerData) {
-    let teams = [];
-
-    if (playerData.length >= (config.playerMax * config.teamMax)) {
-        const roleBuckets = {
-            tank: [],
-            dps: [],
-            support: []
+        else {
+            matchData.hasError = response.hasError;
+            matchData.responseMessage = response.message;
         }
-
-        for (let i = 0; i < config.teamMax; i++) {
-            teams[i] = {
-                mmr: 0,
-                name: config.teamNames[i],
-                tank: [],
-                dps: [],
-                support: [],
-                players: []
-            };
-        }
-
-        playerData.forEach(p => p.queue.forEach(q => roleBuckets[q].push(p)));
-        placePlayersOnTeam(teams, roleBuckets);
-
-        // Check for match evenness
-        const teamMMRDiff = (teams[0].mmr / config.teamMax) - (teams[1].mmr / config.teamMax);
-        if (!teams.every(t => t.players.length == config.playerMax)) {
-            console.log(`Not enough players in a speciifc team. Redoing teams.`);
-            teams = CreateOverwatchMatch(playerData);
-        }
-        else if (teamMMRDiff > config.maxSRDiff || teamMMRDiff < -config.maxSRDiff) {
-            console.log(`Unbalanced teams: Team 1 (${teams[0].mmr}) vs Team 2 (${teams[1].mmr})`);
-            teams = CreateOverwatchMatch(playerData);
-        }
-
-        // Add the average SR in the data
-        teams.forEach(t => {
-            t.avgSR = Math.floor(t.mmr / t.players.length);
-        })
     }
     else {
-        console.log("Not enough players to make a match. Please restart queue");
+        matchData.hasError = true;
+        matchData.responseMessage = `Not enough players queued. Need ${queuedPlayers.length - playersNeeded} players`
     }
     
-    return teams;
+    return matchData;
 }
 
-module.exports = CreateOverwatchMatch;
+function createTeams(teams) {
+    while (teams.length < config.maxTeams) {
+        teams.push({
+            name: config.teamNames[teams.length] || "N/A",
+            players: [],
+            tank: [],
+            support: [],
+            dps: [],
+            totalSR: function() {
+                const roleNames = config.roles.map(r => r.name);
+                let totalSR = 0;
+
+                roleNames.forEach(r => this[r].forEach(p => totalSR += p[r]))
+
+                return totalSR;
+            },
+            avgSR: function () {
+                return Math.floor(this.totalSR() / this.players.length)
+            },
+            addPlayerToTeam: function (playerData, role) {
+                this[role].push(playerData);
+                this.players.push(playerData);
+            },
+            neededRoles: function () {
+                const roleNamesNeeded = [];
+                config.roles.forEach(r => {
+                    if (this[r.name].length < r.max) {
+                        roleNamesNeeded.push(r.name);
+                    }
+                })
+
+                return roleNamesNeeded;
+            }
+        })
+    }
+}
+
+function placePlayersOnTeams(teams, players) {
+    const response = {
+        hasError: false,
+        message: ""
+    }
+    const queuedPlayers = [...players];
+    const roleBucket = {
+        tank: [],
+        dps: [],
+        support: [],
+        getRandomPlayerFromRole: function (role) {
+            if (this[role].length > 0) {
+                const randomPosition = getRandomInt(0, this[role].length);
+
+                return {...this[role][randomPosition]};
+            }
+            else {
+                return undefined;
+            }
+        },
+        removePlayerFromBucket: function (playerData) {
+            const roles = config.roles.map(r => r.name);
+
+            roles.forEach(r => {
+                this[r] = this[r].filter(p => p.btag !== playerData.btag)
+            })
+        },
+    }
+
+    players.forEach(p => p.queue.forEach(q => roleBucket[q].push(p)));
+
+    // attempt to make the teams within 200 iterations
+    for (let i = 0; i < 200; i++) {
+        const playersNeededInTeam = teams.filter(t => t.players.length < config.maxPlayersOnTeam);
+
+        if (playersNeededInTeam.length > 0 ) {
+            if (queuedPlayers.length > 0) {
+                // Find random Team
+                const team = playersNeededInTeam[getRandomInt(0, playersNeededInTeam.length)]
+
+                // Find random Role
+                const neededRoles = team.neededRoles();
+                const randomRoleI = getRandomInt(0, neededRoles.length);
+
+                const player = roleBucket.getRandomPlayerFromRole(neededRoles[randomRoleI]);
+                if (player) {
+                    roleBucket.removePlayerFromBucket(player);
+                    team.addPlayerToTeam(player, neededRoles[randomRoleI]);
+                }
+                else {
+                    response.hasError = true;
+                    response.message = "Unable to finish creating teams. Not enough players available.";
+                }
+            }
+            else {
+                response.hasError = true;
+                response.message = "Not enough players to fill the teams.";
+                break;
+            }
+        }
+        else {
+            // No need to keep iterating. We have full teams.
+            break;
+        }
+    }
+
+    return response;
+}
+
+module.exports = createOverWatchMatch;

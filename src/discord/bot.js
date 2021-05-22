@@ -2,10 +2,11 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { getRandomInt, parseToNumber, getSRTier } = require("./utilities");
-const CreateOverwatchMatch = require("./match");
+const OverwatchMatch = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
 const pugsCommands = require("../data/commands.json");
+const modPermissions = require("../data/permissions.json");
 
 const { Client } = require("discord.js");
 const client = new Client();
@@ -91,7 +92,7 @@ client.on("message", (message) => {
             case "startq":
                 playersInQueue = [];
                 allowQueue = true;
-                message.channel.send("Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles");
+                message.channel.send("Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles")
                 break;
             case "stopq": 
                 allowQueue = false;
@@ -100,6 +101,7 @@ client.on("message", (message) => {
             case "q": 
                 response = addPlayerToQueue(message.author.tag, messageData);
                 message.reply(response);
+                message.delete();
                 break;
             case "unq": 
                 if (allowQueue) {
@@ -147,7 +149,6 @@ client.on("message", (message) => {
                 allowQueue = true;
                 for (let i = 0; i < 12; i++) {
                     const roles = allowedRoles.filter(r => testPlayerData[i][r] > 500);
-                    console.log(testPlayerData[i].btag, roles);
                     
                     addPlayerToQueue(testPlayerData[i].discordName, roles);
                 }
@@ -205,7 +206,6 @@ function createMatch() {
 
     if (!allowQueue) {
         const playerList = []
-        const testRandomMap = maps[getRandomInt(0, maps.length)];
 
         // Put all players in a list with all of their data
         playersInQueue.forEach(p => {
@@ -219,34 +219,38 @@ function createMatch() {
         })
         
         // Place users in the match
-        const teams = CreateOverwatchMatch(playerList);
+        let matchDetails = null;
 
-        if (teams.length === 2) {
-            response = `Map: ${testRandomMap}\n\n`;
-            teams.forEach((team) => {
-                response += `Team ${team.name} (${team.avgSR})\n`
-                
-                response += "\t- Tank\n"
-                team.tank.forEach((t) => {
-                    response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
-                })
+        do {
+            matchDetails = OverwatchMatch(playerList);
 
-                response += "\t- DPS\n"
-                team.dps.forEach((d) => {
-                    response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
-                })
+            if (matchDetails.hasError) {
+                console.log(matchDetails.responseMessage);
+            }
 
-                response += "\t- Support\n"
-                team.support.forEach((s) => {
-                    response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
-                })
+        } while (matchDetails.hasError);
 
-                response += "\n"
+        response = `Map: ${matchDetails.map}\n\n`;
+        matchDetails.teams.forEach((team) => {
+            response += `Team ${team.name} (${team.avgSR()})\n`
+            
+            response += "\t- Tank\n"
+            team.tank.forEach((t) => {
+                response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
             })
-        }
-        else {
-            response = "Not enough players are available for this queue. Please restart the queue.";
-        }
+
+            response += "\t- DPS\n"
+            team.dps.forEach((d) => {
+                response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
+            })
+
+            response += "\t- Support\n"
+            team.support.forEach((s) => {
+                response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
+            })
+
+            response += "\n"
+        })
     }
     else {
         response = "Queue must be closed to start a match."
@@ -256,13 +260,8 @@ function createMatch() {
 }
 
 function isUserMod(discordUser) {
-    const permissionLevels = [
-        "Events Staff",
-        "Moderator"
-    ]
-    
-    // return discordUser.roles.cache.some(r => permissionLevels.includes(r.name));
-    return true;
+    return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
+    // return true;
 }
 
 function isValidCommand(command) {
