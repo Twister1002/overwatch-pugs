@@ -1,0 +1,52 @@
+[
+    {
+        "command": "info",
+        "isModCommand": false
+    },
+    {
+        "command": "maps",
+        "isModCommand": false
+    },
+    {
+        "command": "users",
+        "isModCommand": false
+    },
+    {
+        "command": "lobby",
+        "isModCommand": false
+    },
+    {
+        "command": "setinfo",
+        "isModCommand": false
+    },
+    {
+        "command": "commands",
+        "isModCommand": false
+    },
+    
+    {
+        "command": "q",
+        "isModCommand": false
+    },
+    {
+        "command": "unq",
+        "isModCommand": false
+    },
+    
+    {
+        "command": "startmatch",
+        "isModCommand": true
+    },
+    {
+        "command": "startq",
+        "isModCommand": true
+    },
+    {
+        "command": "stopq",
+        "isModCommand": true
+    },
+    {
+        "command": "testmatch",
+        "isModCommand": true
+    }
+]
