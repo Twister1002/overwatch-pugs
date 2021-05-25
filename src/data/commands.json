@@ -16,7 +16,7 @@
         "isModCommand": false
     },
     {
-        "command": "setinfo",
+        "command": "set",
         "isModCommand": false
     },
     {
