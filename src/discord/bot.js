@@ -7,7 +7,9 @@ const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
 const pugsCommands = require("../data/commands.json");
 const modPermissions = require("../data/permissions.json");
-const isDev = process.env.NODE_ENV === "dev";
+const isDev = process.env.NODE_ENV.trim() === "dev";
+
+console.log(`IsDev: ${isDev} - ${process.env.NODE_ENV}`);
 
 const { Client } = require("discord.js");
 const client = new Client();
@@ -19,7 +21,8 @@ let loginWaitInterval = 10 * 1000;
 
 function loginBot() {
     setTimeout(() => {
-        client.login(process.env.NODE_ENV === "prod" ? process.env.DISCORDJS_BOT_TOKEN : process.env.DEV_BOT_TOKEN)
+        
+        client.login(isDev ? process.env.DEV_BOT_TOKEN : process.env.PROD_BOT_TOKEN)
         .then(() => {})
         .catch(err => {
             loginAttempts++;
