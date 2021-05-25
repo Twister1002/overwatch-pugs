@@ -24,8 +24,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "botprod": "set NODE_ENV=prod && node ./src/discord/bot.js",
-    "botdev": "set NODE_ENV=dev && nodemon ./src/discord/bot.js"
+    "botprod": "set NODE_ENV=production&& node ./src/discord/bot.js",
+    "botdev": "set NODE_ENV=development&& nodemon ./src/discord/bot.js"
   },
   "eslintConfig": {
     "extends": [
