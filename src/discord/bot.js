@@ -1,12 +1,13 @@
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-const { getRandomInt, parseToNumber, getSRTier } = require("./utilities");
+const { parseToNumber, getSRTier } = require("./utilities");
 const OverwatchMatch = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
 const pugsCommands = require("../data/commands.json");
 const modPermissions = require("../data/permissions.json");
+const isDev = process.env.NODE_ENV === "dev";
 
 const { Client } = require("discord.js");
 const client = new Client();
@@ -18,10 +19,8 @@ let loginWaitInterval = 10 * 1000;
 
 function loginBot() {
     setTimeout(() => {
-        client.login(process.env.DISCORDJS_BOT_TOKEN)
-        .then(() => {
-            console.log(`Bot has logged in ${client.user.tag}`)
-        })
+        client.login(process.env.NODE_ENV === "prod" ? process.env.DISCORDJS_BOT_TOKEN : process.env.DEV_BOT_TOKEN)
+        .then(() => {})
         .catch(err => {
             loginAttempts++;
             console.error(`Failed login attempt ${loginAttempts}`)
@@ -34,40 +33,43 @@ function loginBot() {
 loginBot();
 
 client.on("ready", () => {
-    console.log(client.user.tag);
+    console.log(`Bot has logged in ${client.user.tag}`)
     client.user.setActivity('!pugs', { type: 'LISTENING'} )
 })
 
 client.on("message", (message) => {
     let response = "";
+    let isReply = false;
+    let deleteMessage = false;
     const messageData = message.content.split(" ");
     const mainCommand = messageData.shift().toLowerCase();
 
     if (mainCommand === "!pugs") {
         const subCommand = messageData.shift().toLowerCase();
         if (!isValidCommand(subCommand)) {
+            console.log(`User attempted to use an invalid command ${subCommand}`)
             return;
         }
 
-        if (!canUseCommand(subCommand, message.member)) {
+        if (!canUseCommand(subCommand, message.member) && !isDev) {
             message.reply("You do not have permissions to use this command");
             return;
         }
 
         switch (subCommand) {
             case "info": 
+                isReply = true;
                 let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
                 const playerData = getPlayerDataByDiscordTag(userTag)
 
                 if (playerData) {
-                    message.reply(`BTag: ${playerData.btag}; Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`);
+                    response = `BTag: ${playerData.btag}; Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
                 }
                 else {
-                    message.reply(`No record exists ${userTag}. Please set your info using '!pugs setInfo'`);
+                    response = `No record exists ${userTag}. Please set your info using '!pugs setInfo'`;
                 }
                 break;
-
-            case "setinfo": 
+            case "set": 
                 // Need to find a new way to handle parameters
                 const btagIndex = messageData.findIndex(p => p.toLowerCase().includes("btag"));
                 const supportIndex = messageData.findIndex(p => p.toLowerCase().includes("support"));
@@ -78,39 +80,41 @@ client.on("message", (message) => {
                 const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
                 const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
                 const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
+                isReply = true;
 
-                savePlayerPugData(message.author.tag, bTagInfo, supportRank, tankRank, dpsRank)
-                .then(() => {
-                    message.reply(`Saved as ${bTagInfo} Tank: ${tankRank}; DPS: ${dpsRank}; Support: ${supportRank}`)
-                })
-                .catch((e) => {
+                if (savePlayerPugData(message.author.tag, bTagInfo, supportRank, tankRank, dpsRank)) {
+                    response = `Saved as ${bTagInfo} Tank: ${tankRank}; DPS: ${dpsRank}; Support: ${supportRank}`;
+                }
+                else {
                     console.log("Failed to save PUGs data");
-                    message.reply("Failed to save data");
-                })
+                    response = "Failed to save data";
+                }
 
                 break;
             case "startq":
                 playersInQueue = [];
                 allowQueue = true;
-                message.channel.send("Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles")
+                response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles";
                 break;
             case "stopq": 
                 allowQueue = false;
-                message.channel.send("Queue has been closed");
+                response = "Queue has been closed";
                 break;
             case "q": 
                 response = addPlayerToQueue(message.author.tag, messageData);
-                message.reply(response);
-                message.delete();
+                isReply = true;
+                deleteMessage = true;
                 break;
             case "unq": 
+                isReply = true;
+
                 if (allowQueue) {
                     const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
                     playersInQueue = players;
-                    message.reply(`has been removed from queue`)
+                    response = `has been removed from queue`
                 }
                 else {
-                    message.reply("PUGs does not currently have a queue. Please wait for a mod to start the queue");
+                    response = "PUGs does not currently have a queue. Please wait for a mod to start the queue"
                 }
                 break
             case "lobby": 
@@ -118,19 +122,13 @@ client.on("message", (message) => {
                 playersInQueue.forEach(p => {
                     response += `\n- ${p.discordName} (${p.queue.join(",")})`
                 })
-
-                message.channel.send(response)
                 break;
             case "startmatch":
                 response = createMatch();
-                console.log(response);
-                message.channel.send(response);
                 break;
             case "maps": 
                 // Display all map's name
-                response = "";
                 maps.forEach(m => response += `- ${m}\n`)
-                message.channel.send(response);
                 break;
             case "users": 
                 // Display all user's data
@@ -138,10 +136,8 @@ client.on("message", (message) => {
                 response = `Users Registered: ${allPlayers.length}\n`;
 
                 allPlayers.forEach(p => {
-                    response += `- ${p.discordName} (BTag: ${p.btag}, Tank: ${p.tank}, DPS: ${p.dps}, Support: ${p.support})\n`
+                    response += `- ${p.discordName} - BTag: ${p.btag}\n`
                 })
-                
-                message.channel.send(response);
                 break;
             case "testmatch":
                 const testPlayerData = getAllPlayerData();
@@ -155,7 +151,6 @@ client.on("message", (message) => {
                 allowQueue = false;
 
                 response = createMatch();
-                message.channel.send(response);
                 break;
             case "commands":
                 const availableCommands = pugsCommands.filter(c => {
@@ -168,9 +163,12 @@ client.on("message", (message) => {
                     
                 }).map(c => c.command).join(", ");
 
-                message.reply(`commands you can use: ${availableCommands}`)
+                isReply = true;
+                response = `Available commands: ${availableCommands}`
                 break;
         }
+
+        sendMessageToServer(message, response, isReply, deleteMessage);
     }
 })
 
@@ -259,9 +257,30 @@ function createMatch() {
     return response;
 }
 
+function sendMessageToServer(message, response, isReply = false, deleteMessage = false) {
+    if (response.length > 2000) {
+        console.log(`Message exceeds limits of one message ${response.length}`);
+        message.channel.send("Unable to send message due to size of message.");
+    }
+    else if (response.length === 0) {
+        console.log(`No message to deliver`);
+    }
+    else {
+        if (isReply) {
+            message.reply(response);
+        }
+        else {
+            message.channel.send(response);
+        }
+
+        if (deleteMessage) {
+            message.delete();
+        }
+    }
+}
+
 function isUserMod(discordUser) {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
-    // return true;
 }
 
 function isValidCommand(command) {
@@ -316,7 +335,7 @@ function getAllPlayerData() {
     return pugData;
 }
 
-async function savePlayerPugData(discordName, btag, support, tank, dps) {
+function savePlayerPugData(discordName, btag, support, tank, dps) {
     const pugData = loadFile("overwatchpugs.json");
 
     let playerData = pugData.find(p => p.discordName === discordName);
@@ -344,9 +363,11 @@ async function savePlayerPugData(discordName, btag, support, tank, dps) {
     // Save file
     try {
         saveFile("overwatchpugs.json", pugData);
+        return true;
     }
     catch(e) {
         console.error("Unable to save player data...")
         console.log(playerData)
+        return false;
     }
 }
