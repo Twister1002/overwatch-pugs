@@ -26,7 +26,8 @@
             "program": "${workspaceFolder}\\src\\discord\\bot.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
-            ]
+            ],
+            "env": { "NODE_ENV" : "dev"},
         }
     ]
 }
