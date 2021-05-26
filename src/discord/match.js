@@ -27,7 +27,8 @@ function createOverWatchMatch(queuedPlayers) {
         teams: [],
         map: "",
         responseMessage: "",
-        hasError: false
+        hasError: false,
+        hasFatalError: false
     }
     const playersNeeded = config.maxTeams * config.maxPlayersOnTeam;
 
@@ -35,9 +36,9 @@ function createOverWatchMatch(queuedPlayers) {
         createTeams(matchData.teams);
         matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
+        const teamSRDiff = Math.floor(matchData.teams[0].avgSR() - matchData.teams[1].avgSR());
 
-        const teamSRDiff = Math.floor((matchData.teams.reduce((totalSR, currentTeam) => currentTeam.avgSR())) / 2);
-        if (teamSRDiff > config.maxSRDiff && teamSRDiff < -config.maxSRDiff) {
+        if (teamSRDiff > config.maxSRDiff || teamSRDiff < -config.maxSRDiff) {
             matchData.hasError = true;
             matchData.responseMessage = `SR is too great of difference at ${teamSRDiff}`;
         }
@@ -47,8 +48,9 @@ function createOverWatchMatch(queuedPlayers) {
         }
     }
     else {
+        matchData.hasFatalError = true;
         matchData.hasError = true;
-        matchData.responseMessage = `Not enough players queued. Need ${queuedPlayers.length - playersNeeded} players`
+        matchData.responseMessage = `Not enough players queued. Need ${playersNeeded - queuedPlayers.length} players`
     }
     
     return matchData;
