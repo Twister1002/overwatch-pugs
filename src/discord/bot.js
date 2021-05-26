@@ -1,7 +1,7 @@
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-const { parseToNumber, getSRTier } = require("./utilities");
+const { parseToNumber, getSRTier, getRandomInt } = require("./utilities");
 const OverwatchMatch = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -144,9 +144,10 @@ client.on("message", (message) => {
 
                 allowQueue = true;
                 for (let i = 0; i < 12; i++) {
-                    const roles = allowedRoles.filter(r => testPlayerData[i][r] > 500);
+                    const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
+                    const roles = allowedRoles.filter(r => player[r] > 500);
                     
-                    addPlayerToQueue(testPlayerData[i].discordName, roles);
+                    addPlayerToQueue(player.discordName, roles);
                 }
                 allowQueue = false;
 
@@ -160,7 +161,6 @@ client.on("message", (message) => {
                     else if (!c.isModCommand) {
                         return c;
                     }
-                    
                 }).map(c => c.command).join(", ");
 
                 isReply = true;
@@ -217,6 +217,7 @@ function createMatch() {
         })
         
         // Place users in the match
+        let matchesCreated = 0;
         let matchDetails = null;
 
         do {
@@ -224,31 +225,45 @@ function createMatch() {
 
             if (matchDetails.hasError) {
                 console.log(matchDetails.responseMessage);
+                
+                if (matchDetails.hasFatalError) {
+                    break;
+                }
             }
 
-        } while (matchDetails.hasError);
+            matchesCreated++;
+        } while (matchDetails.hasError && matchesCreated < 5000);
 
-        response = `Map: ${matchDetails.map}\n\n`;
-        matchDetails.teams.forEach((team) => {
-            response += `Team ${team.name} (${team.avgSR()})\n`
-            
-            response += "\t- Tank\n"
-            team.tank.forEach((t) => {
-                response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
+        if (matchesCreated >= 5000) {
+            response = `Unable to create a suitable match within ${matchesCreated} tries. Please restart queue.`
+        }
+        else if (matchDetails.hasError || matchDetails.hasFatalError) {
+            response = matchDetails.responseMessage;
+        }
+        else {
+            console.log(`Created match after ${matchesCreated} attempts`)
+            response = `Map: ${matchDetails.map}\n\n`;
+            matchDetails.teams.forEach((team) => {
+                response += `Team ${team.name} (${team.avgSR()})\n`
+                
+                response += "\t- Tank\n"
+                team.tank.forEach((t) => {
+                    response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
+                })
+                
+                response += "\t- DPS\n"
+                team.dps.forEach((d) => {
+                    response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
+                })
+                
+                response += "\t- Support\n"
+                team.support.forEach((s) => {
+                    response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
+                })
+                
+                response += "\n"
             })
-
-            response += "\t- DPS\n"
-            team.dps.forEach((d) => {
-                response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
-            })
-
-            response += "\t- Support\n"
-            team.support.forEach((s) => {
-                response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
-            })
-
-            response += "\n"
-        })
+        }
     }
     else {
         response = "Queue must be closed to start a match."
