@@ -29,6 +29,10 @@
         "isModCommand": false
     },
     {
+        "command": "quser",
+        "isModCommand": true
+    },
+    {
         "command": "unq",
         "isModCommand": false
     },

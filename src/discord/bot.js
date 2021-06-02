@@ -100,6 +100,12 @@ client.on("message", (message) => {
                 allowQueue = false;
                 response = "Queue has been closed";
                 break;
+            case "quser": 
+                const playerToQueue = message.mentions.users.first();
+                messageData.shift(); // This is only needed to remove the tag
+                response = addPlayerToQueue(playerToQueue.tag, messageData);
+                response = `${playerToQueue} ` + response;
+                break;
             case "q": 
                 response = addPlayerToQueue(message.author.tag, messageData);
                 isReply = true;

@@ -4,6 +4,12 @@
 - Place users in NoSQL DB
 - Create DB tables 
 - Create match history information in DB
+- Allow mod to set amount of players on teams
+- Allow mod to create user
+ - Need to think about 
+
+## Version 1.0.4
+- Mods can now queue any tagged discord user and specific role
 
 ## Version 1.0.3
 - Fixed bug that would cause infinate loops when creating a match. (Now only attempts 5000 times before breaking)
