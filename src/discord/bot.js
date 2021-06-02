@@ -193,6 +193,23 @@ client.on("message", (message) => {
                 isReply = true;
                 response = `Available commands: ${availableCommands}`
                 break;
+            case "help": 
+                isReply = true;
+                const commandName = messageData.shift();
+                const command = pugsCommands.find(x => x.command === commandName);
+                const userCanUseCommand = canUseCommand(commandName, message.member);
+
+                if (command && (userCanUseCommand || isDev)) {
+                    response = `${command.help}`
+                    if (command.args) {
+                        response += `\n\`${command.args}\``
+                    }
+                }
+                else {
+                    const helpCommand = pugsCommands.find(x => x.command === "help");
+                    response = `No command information found for ${commandName}\n${helpCommand.args}`
+                }
+                break;
         }
 
         sendMessageToServer(message, response, isReply, deleteMessage);
