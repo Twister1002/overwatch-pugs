@@ -1,0 +1,20 @@
+{
+    "maxTeams": 2,
+    "maxPlayersOnTeam": 6,
+    "maxSRDiff": 35,
+    "teamNames": ["Blue", "Red", "Green", "Purple", "Orange", "Yellow"],
+    "roles": [
+        {
+            "name": "tank",
+            "max": 2
+        },
+        {
+            "name": "dps",
+            "max": 2
+        },
+        {
+            "name": "support",
+            "max": 2
+        }
+    ]
+}

@@ -1,52 +1,95 @@
 [
     {
         "command": "info",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Provides info about the user's stats",
+        "args": "!pugs info <@discordUser>"
     },
     {
         "command": "maps",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "All maps available for matches",
+        "args": ""
     },
     {
         "command": "users",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Shows all users who are registered in the bot",
+        "args": ""
     },
     {
         "command": "lobby",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Shows all players in queue",
+        "args": ""
     },
     {
         "command": "set",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Sets your Overwatch data for match making",
+        "args": "!pugs btag <Battle.NET tag> support <SR> dps <SR> tank <SR>"
     },
     {
         "command": "commands",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Shows all the available commands for the user",
+        "args": ""
+    },
+    {
+        "command": "help",
+        "isModCommand": false,
+        "help": "Shows all the available commands for the user",
+        "args": "!pugs help <command>"
     },
     
     {
         "command": "q",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Queues you into the system for match making",
+        "args": "!pugs q <support | dps | tank>"
+    },
+    {
+        "command": "quser",
+        "isModCommand": true,
+        "help": "Queues a specific user for match making",
+        "args": "!pugs quser <DiscordUser>"
     },
     {
         "command": "unq",
-        "isModCommand": false
+        "isModCommand": false,
+        "help": "Removed the player from queue",
+        "args": ""
     },
     
     {
         "command": "startmatch",
-        "isModCommand": true
+        "isModCommand": true,
+        "help": "Notifies the system to create matches from players in lobby",
+        "args": ""
     },
     {
         "command": "startq",
-        "isModCommand": true
+        "isModCommand": true,
+        "help": "Starts the queue and allows players to queue for match making",
+        "args": ""
     },
     {
         "command": "stopq",
-        "isModCommand": true
+        "isModCommand": true,
+        "help": "Stops the queue and disallows players to queue for match making",
+        "args": ""
     },
     {
         "command": "testmatch",
-        "isModCommand": true
+        "isModCommand": true,
+        "isDevCommand": true,
+        "help": "TESTING ONLY",
+        "args": ""
+    },
+    {
+        "command": "setup",
+        "isModCommand": true,
+        "help": "Sets specific information for matching players into teams.",
+        "args": "!pugs setup <srdiff | teams | support | tank | dps> <value>"
     }
 ]

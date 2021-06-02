@@ -1,9 +1,20 @@
 # PUGs Bot for MissElise's Discord Server
 
 ## FUTURE: 
-- Place users in NoSQL DB
-- Create DB tables 
-- Create match history information in DB
+- Implement a database using SQLite
+ - DB Tables 
+ - Match History
+- Allow mods to create new users
+
+## Version 1.0.4
+- Added a help command to provide info and arguments 
+- Mods can now queue any tagged discord user and specific role
+- Mods can now modify match settings by specifing settings and a value
+  - srdiff
+  - support
+  - tank
+  - dps
+  - teams
 
 ## Version 1.0.3
 - Fixed bug that would cause infinate loops when creating a match. (Now only attempts 5000 times before breaking)
