@@ -10,6 +10,13 @@
 
 ## Version 1.0.4
 - Mods can now queue any tagged discord user and specific role
+- Mods can now modify match settings by specifing settings and a value
+  - srdiff
+  - support
+  - tank
+  - dps
+  - teams
+
 
 ## Version 1.0.3
 - Fixed bug that would cause infinate loops when creating a match. (Now only attempts 5000 times before breaking)

@@ -2,7 +2,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { parseToNumber, getSRTier, getRandomInt } = require("./utilities");
-const OverwatchMatch = require("./match");
+const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
 const pugsCommands = require("../data/commands.json");
@@ -101,6 +101,8 @@ client.on("message", (message) => {
                 response = "Queue has been closed";
                 break;
             case "quser": 
+                deleteMessage = true;
+                isReply = false;
                 const playerToQueue = message.mentions.users.first();
                 messageData.shift(); // This is only needed to remove the tag
                 response = addPlayerToQueue(playerToQueue.tag, messageData);
@@ -149,7 +151,7 @@ client.on("message", (message) => {
                 const testPlayerData = getAllPlayerData();
 
                 allowQueue = true;
-                for (let i = 0; i < 12; i++) {
+                for (let i = 0; i < testPlayerData.length; i++) {
                     const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
                     const roles = allowedRoles.filter(r => player[r] > 500);
                     
@@ -158,6 +160,25 @@ client.on("message", (message) => {
                 allowQueue = false;
 
                 response = createMatch();
+                break;
+            case "setup": 
+                const settings = {};
+
+                if (messageData.length > 0) {
+                    while (messageData.length > 0) {
+                        const setting = messageData.shift();
+                        const value = messageData.shift();
+
+                        settings[setting] = isNaN(value) ? value : Number(value);
+                    }
+
+                    response = setMatchConfig(settings);
+                }
+                else {
+                    const updatedSettings = getMatchConfig();
+
+                    response = JSON.stringify(updatedSettings, (key, value) => (value || ''), 4).replace(/"([^"]+)":/g, '$1:');
+                }
                 break;
             case "commands":
                 const availableCommands = pugsCommands.filter(c => {
@@ -227,7 +248,7 @@ function createMatch() {
         let matchDetails = null;
 
         do {
-            matchDetails = OverwatchMatch(playerList);
+            matchDetails = createOverWatchMatch(playerList);
 
             if (matchDetails.hasError) {
                 console.log(matchDetails.responseMessage);
@@ -288,14 +309,14 @@ function sendMessageToServer(message, response, isReply = false, deleteMessage =
     }
     else {
         if (isReply) {
-            message.reply(response);
+            message.reply(response).catch(err => console.error(err));
         }
         else {
-            message.channel.send(response);
+            message.channel.send(response).catch(err => console.error(err));
         }
 
         if (deleteMessage) {
-            message.delete();
+            message.delete().catch(err => console.error(err));
         }
     }
 }

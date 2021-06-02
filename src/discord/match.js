@@ -1,26 +1,7 @@
 const { getRandomInt } = require("./utilities");
 const overwatchMaps = require("../data/maps.json");
-
-const config = {
-    maxTeams: 2,
-    maxPlayersOnTeam: 6,
-    maxSRDiff: 35,
-    teamNames: ["Blue", "Red"],
-    roles: [
-        {
-            name: "tank",
-            max: 2
-        },
-        {
-            name: "dps",
-            max: 2
-        },
-        {
-            name: "support",
-            max: 2
-        }
-    ]
-}
+const originalConfig = require("../data/overwatchconfig.json");
+let config = originalConfig;
 
 function createOverWatchMatch(queuedPlayers) { 
     const matchData = {
@@ -30,6 +11,7 @@ function createOverWatchMatch(queuedPlayers) {
         hasError: false,
         hasFatalError: false
     }
+
     const playersNeeded = config.maxTeams * config.maxPlayersOnTeam;
 
     if (queuedPlayers.length >= playersNeeded) {
@@ -162,4 +144,59 @@ function placePlayersOnTeams(teams, players) {
     return response;
 }
 
-module.exports = createOverWatchMatch;
+function getMatchConfig() {
+    return config;
+}
+
+function setMatchConfig(settings) {
+    const messages = [];
+
+    if (Object.entries(settings).some(([setting, value]) => setting === "reset")) {
+        resetMatchConfig();
+        messages.push(`Settings have been reset`);
+    }
+    else {
+        Object.entries(settings).forEach(([setting, value]) => {
+            switch (setting) {
+                case "maxsrdiff": 
+                    config.maxSRDiff = value;
+                    messages.push(`${setting}: ${value}`);
+                    break;
+                case "teams":
+                    config.maxTeams = value;
+                    messages.push(`${setting}: ${value}`);
+                    break;
+                case "tank":
+                case "dps": 
+                case "support":
+                    const role = config.roles.find(x => x.name === setting);
+                    
+                    if (role) {
+                        role.max = value;
+                    }
+
+                    messages.push(`${setting}: ${value}`);
+                    break;
+                default: 
+                    messages.push(`Invalid setting "${setting}"`);
+                    break;
+            }
+        })
+    }
+
+    // Calculate the new max player amount
+    let maxPlayers = config.roles.reduce((maxPlayers, currentRole) => maxPlayers += currentRole.max, 0)
+    config.maxPlayersOnTeam = maxPlayers;
+
+    return messages.join("\n");
+}
+
+function resetMatchConfig() {
+    config = originalConfig;
+}
+
+module.exports = {
+    createOverWatchMatch,
+    setMatchConfig,
+    getMatchConfig
+}

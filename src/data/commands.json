@@ -52,5 +52,9 @@
     {
         "command": "testmatch",
         "isModCommand": true
+    },
+    {
+        "command": "setup",
+        "isModCommand": true
     }
 ]
