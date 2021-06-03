@@ -9,7 +9,7 @@ const pugsCommands = require("../data/commands.json");
 const modPermissions = require("../data/permissions.json");
 const isDev = process.env.NODE_ENV === "development";
 
-const { Client } = require("discord.js");
+const { Client, MessageEmbed } = require("discord.js");
 const client = new Client();
 
 let allowQueue = false;
@@ -94,7 +94,7 @@ client.on("message", (message) => {
             case "startq":
                 playersInQueue = [];
                 allowQueue = true;
-                response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q Tank, Support, DPS\`. You may queue for any combination of roles";
+                response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q <tank | dps | support>\`. You may queue for any combination of roles";
                 break;
             case "stopq": 
                 allowQueue = false;
@@ -115,6 +115,7 @@ client.on("message", (message) => {
                 break;
             case "unq": 
                 isReply = true;
+                deleteMessage = true;
 
                 if (allowQueue) {
                     const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
@@ -144,7 +145,7 @@ client.on("message", (message) => {
                 response = `Users Registered: ${allPlayers.length}\n`;
 
                 allPlayers.forEach(p => {
-                    response += `- ${p.discordName} - BTag: ${p.btag}\n`
+                    response += `- ${p.discordName} (${p.btag})\n`
                 })
                 break;
             case "testmatch":
@@ -159,7 +160,7 @@ client.on("message", (message) => {
                 }
                 allowQueue = false;
 
-                response = createMatch();
+                response = createMatch(message.channel);
                 break;
             case "setup": 
                 const settings = {};
@@ -181,6 +182,8 @@ client.on("message", (message) => {
                 }
                 break;
             case "commands":
+                isReply = true;
+
                 const availableCommands = pugsCommands.filter(c => {
                     if (c.isModCommand && isUserMod(message.member)) {
                         return c;
@@ -190,7 +193,6 @@ client.on("message", (message) => {
                     }
                 }).map(c => c.command).join(", ");
 
-                isReply = true;
                 response = `Available commands: ${availableCommands}`
                 break;
             case "help": 
@@ -223,14 +225,19 @@ function addPlayerToQueue(discordName, roles) {
     
     if (allowQueue) {
         if (roles.length > 0) {
-            const inQueue = playersInQueue.filter(q => q.discordName !== discordName);
-            inQueue.push({
-                discordName,
-                queue: filteredRoles
-            })
+            if (filteredRoles.length > 0) {
+                const inQueue = playersInQueue.filter(q => q.discordName !== discordName);
+                inQueue.push({
+                    discordName,
+                    queue: filteredRoles
+                })
 
-            playersInQueue = inQueue;
-            response = `is queued for ${filteredRoles.join(", ")}.`
+                playersInQueue = inQueue;
+                response = `is queued for ${filteredRoles.join(", ")}.`
+            }
+            else {
+                response = `You can not queue for with invalid SR. ${roles.map(r => `${r} (${player[r]})`).join(" ")}`
+            }
         }
         else {
             response = "You must provide a role to queue for."
@@ -243,7 +250,7 @@ function addPlayerToQueue(discordName, roles) {
     return response;
 }
 
-function createMatch() {
+function createMatch(channel) {
     let response = "";
 
     if (!allowQueue) {
@@ -264,76 +271,66 @@ function createMatch() {
         let matchesCreated = 0;
         let matchDetails = null;
 
-        do {
+        while ((matchDetails === null || matchDetails.hasError) && matchesCreated < 5000) {
+            matchesCreated++;
             matchDetails = createOverWatchMatch(playerList);
 
             if (matchDetails.hasError) {
                 console.log(matchDetails.responseMessage);
                 
                 if (matchDetails.hasFatalError) {
+                    response = matchDetails.responseMessage
                     break;
                 }
             }
-
-            matchesCreated++;
-        } while (matchDetails.hasError && matchesCreated < 5000);
+        }
 
         if (matchesCreated >= 5000) {
             response = `Unable to create a suitable match within ${matchesCreated} tries. Please restart queue.`
         }
-        else if (matchDetails.hasError || matchDetails.hasFatalError) {
-            response = matchDetails.responseMessage;
-        }
         else {
-            console.log(`Created match after ${matchesCreated} attempts`)
-            response = `Map: ${matchDetails.map}\n\n`;
+            const embeddedMessage = new MessageEmbed()
+            .setColor("#0099ff")
+            .setTitle("Overwatch Match")
+            .setDescription(`Map: ${matchDetails.map}`)
+            
             matchDetails.teams.forEach((team) => {
-                response += `Team ${team.name} (${team.avgSR()})\n`
-                
-                response += "\t- Tank\n"
-                team.tank.forEach((t) => {
-                    response += `\t\t- ${t.name} (${t.discordName}) - ${t.tank} - ${getSRTier(t.tank)}\n`
-                })
-                
-                response += "\t- DPS\n"
-                team.dps.forEach((d) => {
-                    response += `\t\t- ${d.name} (${d.discordName}) - ${d.dps} - ${getSRTier(d.dps)}\n`
-                })
-                
-                response += "\t- Support\n"
-                team.support.forEach((s) => {
-                    response += `\t\t- ${s.name} (${s.discordName}) - ${s.support} - ${getSRTier(s.support)}\n`
-                })
-                
-                response += "\n"
+                response.addField("\u200B", "\u200B", false)
+                response.addField(`Team ${team.name}`, team.avgSR(), false);
+                response.addField(`Tanks:`, team.tank.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
+                response.addField(`DPS:`, team.dps.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
+                response.addField(`Supports:`, team.support.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
             })
+
+            console.log(`Created match after ${matchesCreated} attempts`)
+            channel.send({ embed: embeddedMessage });
         }
     }
     else {
-        response = "Queue must be closed to start a match."
+        channel.send("Queue must be closed to start a match.");
     }
-
-    return response;
 }
 
 function sendMessageToServer(message, response, isReply = false, deleteMessage = false) {
-    if (response.length > 2000) {
-        console.log(`Message exceeds limits of one message ${response.length}`);
-        message.channel.send("Unable to send message due to size of message.");
-    }
-    else if (response.length === 0) {
-        console.log(`No message to deliver`);
-    }
-    else {
-        if (isReply) {
-            message.reply(response).catch(err => console.error(err));
+    if (response && response.length > 0) {
+        if (response.length > 2000) {
+            console.log(`Message exceeds limits of one message ${response.length}`);
+            message.channel.send("Unable to send message due to size of message.");
+        }
+        else if (response.length === 0) {
+            console.log(`No message to deliver`);
         }
         else {
-            message.channel.send(response).catch(err => console.error(err));
-        }
+            if (isReply) {
+                message.reply(response).catch(err => console.error(err));
+            }
+            else {
+                message.channel.send(response).catch(err => console.error(err));
+            }
 
-        if (deleteMessage) {
-            message.delete().catch(err => console.error(err));
+            if (deleteMessage) {
+                message.delete().catch(err => console.error(err));
+            }
         }
     }
 }

@@ -6,6 +6,13 @@
  - Match History
 - Allow mods to create new users
 
+## Version 1.0.5 (CURRENT)
+- Displays match information within an embedded block
+- Players being removed from queue now deletes messages
+- Fixed issues with messages being sent without a length
+- Fixed some text errors in response to a command
+- Fixed bug when queuing for roles without proper SR values
+
 ## Version 1.0.4
 - Added a help command to provide info and arguments 
 - Mods can now queue any tagged discord user and specific role
