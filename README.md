@@ -1,12 +1,12 @@
 # PUGs Bot for MissElise's Discord Server
 
 ## FUTURE: 
-- Implement a database using SQLite
+- Implement a database using SQLite (This could be the start of allowing multiple servers)
  - DB Tables 
  - Match History
 - Allow mods to create new users
 
-## Version 1.0.5 (CURRENT)
+## Version 1.0.5
 - Displays match information within an embedded block
 - Players being removed from queue now deletes messages
 - Fixed issues with messages being sent without a length
