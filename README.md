@@ -1,10 +1,28 @@
 # PUGs Bot for MissElise's Discord Server
 
 ## FUTURE: 
-- Implement a database using SQLite
+- Implement a database using SQLite (This could be the start of allowing multiple servers)
  - DB Tables 
  - Match History
 - Allow mods to create new users
+
+## Bugs:
+- Fix parsing issue with setting players info
+
+## Version 1.0.5
+- Displays match information within an embedded block
+- Players can now queue with the "all" option. It will queue them for all roles available to them
+- Players playing in a match are now pingged
+- Players being removed from queue now deletes messages
+- Players setting their info will now: 
+ - No longer sets roles to 0
+ - Adds their DiscordID
+- Fixed issues with messages being sent without a length
+- Fixed some text errors in response to a command
+- Fixed bug when queuing for roles without proper SR values
+- Fixed help information 
+- Fixed issue with hard crashing and recover more gracefully to prevent unusable bot
+- Fixed bug where users could not queue if their SR was 500 or below. Users must have 500 or above
 
 ## Version 1.0.4
 - Added a help command to provide info and arguments 
