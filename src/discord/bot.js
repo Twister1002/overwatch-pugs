@@ -65,7 +65,7 @@ client.on("message", (message) => {
                         response = `BTag: ${playerData.btag}; Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
                     }
                     else {
-                        response = `No record exists ${userTag}. Please set your info using '!pugs setInfo'`;
+                        response = `No record exists for ${userTag}. Please set your info using '!pugs setInfo'`;
                     }
                     break;
                 case "set": 
@@ -95,7 +95,9 @@ client.on("message", (message) => {
                 case "startq":
                     playersInQueue = [];
                     allowQueue = true;
-                    response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q <tank | dps | support>\`. You may queue for any combination of roles";
+                    const commandInfo = getCommand("q");
+
+                    response = `Queue has been opened.\nTo queue for a role, please use \`!pugs ${commandInfo.command} ${commandInfo.args}\`.`;
                     break;
                 case "stopq": 
                     allowQueue = false;
@@ -231,7 +233,8 @@ client.on("message", (message) => {
 function addPlayerToQueue(discordName, roles) {
     let response = "";
     const player = getPlayerDataByDiscordTag(discordName);
-    const filteredRoles = roles.filter(r => player[r.toLowerCase()] > 500).map(r => r.toLowerCase());
+    const wantedRoles = roles.includes("all") ? [...allowedRoles] : roles;
+    const filteredRoles = wantedRoles.filter(r => player[r.toLowerCase()] >= 500).map(r => r.toLowerCase());
     
     if (allowQueue) {
         if (roles.length > 0) {
@@ -246,7 +249,7 @@ function addPlayerToQueue(discordName, roles) {
                 response = `is queued for ${filteredRoles.join(", ")}.`
             }
             else {
-                response = `You can not queue for with invalid SR. ${roles.map(r => `${r} (${player[r]})`).join(" ")}`
+                response = `You can not queue for with invalid SR. ${filteredRoles.map(r => `${r} (${player[r]})`).join(" ")}`
             }
         }
         else {
@@ -285,18 +288,22 @@ function createMatch(channel) {
             matchesCreated++;
             matchDetails = createOverWatchMatch(playerList);
 
-            if (matchDetails.hasError) {
-                console.log(matchDetails.responseMessage);
-                
-                if (matchDetails.hasFatalError) {
-                    response = matchDetails.responseMessage
-                    break;
-                }
+            if (matchDetails.hasFatalError) {
+                break;
             }
         }
 
         if (matchesCreated >= 5000) {
             response = `Unable to create a suitable match within ${matchesCreated} tries. Please restart queue.`
+        }
+        else if (matchDetails.hasError || matchDetails.hasFatalError) {
+            if (matchDetails.hasError) {
+                console.log(matchDetails.responseMessage);
+                
+                if (matchDetails.hasFatalError) {
+                    response = matchDetails.responseMessage;
+                }
+            }
         }
         else {
             const embeddedMessage = new MessageEmbed()
@@ -307,9 +314,9 @@ function createMatch(channel) {
             matchDetails.teams.forEach((team) => {
                 embeddedMessage.addField("\u200B", "\u200B", false)
                 embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
-                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `<@${x.discordid}>\n${x.btag}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`DPS:`, team.dps.map(x => `<@${x.discordid}>\n${x.btag}\n${x.dps} - ${getSRTier(x.dps)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`Supports:`, team.support.map(x => `<@${x.discordid}>\n${x.btag}\n${x.support} - ${getSRTier(x.support)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.btag}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.btag}\n${x.dps} - ${getSRTier(x.dps)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.btag}\n${x.support} - ${getSRTier(x.support)}\n`).join("\n") || "None", true)
             })
 
             console.log(`Created match after ${matchesCreated} attempts`)
@@ -319,6 +326,8 @@ function createMatch(channel) {
     else {
         channel.send("Queue must be closed to start a match.");
     }
+
+    return response;
 }
 
 function sendMessageToServer(message, response, isReply = false, deleteMessage = false) {
@@ -373,6 +382,10 @@ function getAllPlayerData() {
     const pugData = loadFile("overwatchpugs.json");
 
     return pugData;
+}
+
+function getCommand(commandName) {
+    return pugsCommands.find(x => x.command === commandName);
 }
 
 function savePlayerPugData(discordUser, btag, support, tank, dps) {

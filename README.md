@@ -11,6 +11,7 @@
 
 ## Version 1.0.5
 - Displays match information within an embedded block
+- Players can now queue with the "all" option. It will queue them for all roles available to them
 - Players playing in a match are now pingged
 - Players being removed from queue now deletes messages
 - Players setting their info will now: 
@@ -21,6 +22,7 @@
 - Fixed bug when queuing for roles without proper SR values
 - Fixed help information 
 - Fixed issue with hard crashing and recover more gracefully to prevent unusable bot
+- Fixed bug where users could not queue if their SR was 500 or below. Users must have 500 or above
 
 ## Version 1.0.4
 - Added a help command to provide info and arguments 

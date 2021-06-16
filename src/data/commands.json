@@ -46,13 +46,13 @@
         "command": "q",
         "isModCommand": false,
         "help": "Queues you into the system for match making",
-        "args": "<support | dps | tank>"
+        "args": "<support | dps | tank | all>"
     },
     {
         "command": "quser",
         "isModCommand": true,
         "help": "Queues a specific user for match making",
-        "args": "<DiscordUser>"
+        "args": "<DiscordUser> <support | dps | tank | all>"
     },
     {
         "command": "unq",
