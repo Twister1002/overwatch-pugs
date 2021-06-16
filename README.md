@@ -6,12 +6,17 @@
  - Match History
 - Allow mods to create new users
 
+## Bugs:
+- Fix parsing issue with setting players info
+
 ## Version 1.0.5
 - Displays match information within an embedded block
 - Players being removed from queue now deletes messages
 - Fixed issues with messages being sent without a length
 - Fixed some text errors in response to a command
 - Fixed bug when queuing for roles without proper SR values
+- Fixed help information 
+- Fix issue with hard crashing and recover more gracefully to prevent unusable bot
 
 ## Version 1.0.4
 - Added a help command to provide info and arguments 
