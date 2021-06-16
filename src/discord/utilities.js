@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 //The maximum is exclusive and the minimum is inclusive
 function getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -43,8 +46,53 @@ function getSRTier(sr) {
     }
 }
 
+async function findUserInGuild(guild, discordUserId) {
+    let user = undefined;
+
+    if (!Number.isNaN(discordUserId) && discordUserId) {
+        user = guild.members.cache.find(u => discordUserId === u.user.id);
+
+        if (!user) {
+            // Find the user 
+            user = guild.members.fetch(discordUserId);
+        }
+    }
+
+    return user;
+}
+
+function loadFile(fileName) {
+    const filePath = path.join(__dirname, "../", "data", fileName);
+    let fileData = null;
+
+    if (fs.existsSync(filePath)) {
+        fileData = fs.readFileSync(filePath);
+        const isJSON = fileName.substr(fileName.lastIndexOf(".")).toLowerCase().includes("json") ? true : false;
+
+        if (isJSON) {
+            fileData = JSON.parse(fileData);
+        }
+    }
+
+    return fileData;
+}
+
+function saveFile(fileName, data) {
+    const filePath = path.join(__dirname, "../", "data", fileName);
+
+    if (fs.existsSync(filePath)) {
+        fileData = fs.writeFileSync(filePath, JSON.stringify(data));
+    }
+
+    return fileData;
+}
+
+
 module.exports = {
     getRandomInt,
     parseToNumber,
-    getSRTier
+    getSRTier,
+    findUserInGuild,
+    saveFile,
+    loadFile
 }

@@ -1,7 +1,5 @@
 require("dotenv").config();
-const fs = require("fs");
-const path = require("path");
-const { parseToNumber, getSRTier, getRandomInt } = require("./utilities");
+const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -71,6 +69,8 @@ client.on("message", (message) => {
                     }
                     break;
                 case "set": 
+                    isReply = true;
+
                     // Need to find a new way to handle parameters
                     const btagIndex = messageData.findIndex(p => p.toLowerCase().includes("btag"));
                     const supportIndex = messageData.findIndex(p => p.toLowerCase().includes("support"));
@@ -78,13 +78,13 @@ client.on("message", (message) => {
                     const tankIndex = messageData.findIndex(p => p.toLowerCase().includes("tank"));
 
                     const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1] : null;
-                    const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
-                    const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
-                    const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
-                    isReply = true;
+                    const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : undefined;
+                    const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
+                    const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
 
-                    if (savePlayerPugData(message.author.tag, bTagInfo, supportRank, tankRank, dpsRank)) {
-                        response = `Saved as ${bTagInfo} Tank: ${tankRank}; DPS: ${dpsRank}; Support: ${supportRank}`;
+                    const savedPlayerData = savePlayerPugData(message.author, bTagInfo, supportRank, tankRank, dpsRank);
+                    if (savedPlayerData) {
+                        response = `Saved as ${savedPlayerData.btag} Tank: ${savedPlayerData.tank}; DPS: ${savedPlayerData.dps}; Support: ${savedPlayerData.support}`;
                     }
                     else {
                         console.log("Failed to save PUGs data");
@@ -126,7 +126,7 @@ client.on("message", (message) => {
                     else {
                         response = "PUGs does not currently have a queue. Please wait for a mod to start the queue"
                     }
-                    break
+                    break;
                 case "lobby": 
                     response = `${playersInQueue.length} players in queue:\n`;
                     playersInQueue.forEach(p => {
@@ -134,7 +134,7 @@ client.on("message", (message) => {
                     })
                     break;
                 case "startmatch":
-                    response = createMatch();
+                    response = createMatch(message.channel);
                     break;
                 case "maps": 
                     // Display all map's name
@@ -219,10 +219,10 @@ client.on("message", (message) => {
         }
     }
     catch (err) {
-        console.error(`A fatal error has caused the application to crash. This is the main error catcher.\n${err.message}`)
+        console.error(`A fatal error has caused the application to crash. This is the main error catcher.\n${err.message}\n${err.stack}`)
         sendMessageToServer(
             message,
-            `Whoops! Something wrong happened... :(. The command may have been typed incorrectly or something just caught fire. Check your command and try again`,
+            `Oooh no ya'll! Something is broken!... well try again and see if you can fix your error.`,
             false, false
         )
     }
@@ -303,13 +303,13 @@ function createMatch(channel) {
             .setColor("#0099ff")
             .setTitle("Overwatch Match")
             .setDescription(`Map: ${matchDetails.map}`)
-            
+
             matchDetails.teams.forEach((team) => {
-                response.addField("\u200B", "\u200B", false)
-                response.addField(`Team ${team.name}`, team.avgSR(), false);
-                response.addField(`Tanks:`, team.tank.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
-                response.addField(`DPS:`, team.dps.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
-                response.addField(`Supports:`, team.support.map(x => `${x.discordName}\n${x.name}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n"), true)
+                embeddedMessage.addField("\u200B", "\u200B", false)
+                embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
+                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `<@${x.discordid}>\n${x.btag}\n${x.tank} - ${getSRTier(x.tank)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`DPS:`, team.dps.map(x => `<@${x.discordid}>\n${x.btag}\n${x.dps} - ${getSRTier(x.dps)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Supports:`, team.support.map(x => `<@${x.discordid}>\n${x.btag}\n${x.support} - ${getSRTier(x.support)}\n`).join("\n") || "None", true)
             })
 
             console.log(`Created match after ${matchesCreated} attempts`)
@@ -365,32 +365,6 @@ function canUseCommand(command, discordUser) {
     return true;
 }
 
-function loadFile(fileName) {
-    const filePath = path.join(__dirname, "../", "data", fileName);
-    let fileData = null;
-
-    if (fs.existsSync(filePath)) {
-        fileData = fs.readFileSync(filePath);
-        const isJSON = fileName.substr(fileName.lastIndexOf(".")).toLowerCase().includes("json") ? true : false;
-
-        if (isJSON) {
-            fileData = JSON.parse(fileData);
-        }
-    }
-
-    return fileData;
-}
-
-function saveFile(fileName, data) {
-    const filePath = path.join(__dirname, "../", "data", fileName);
-
-    if (fs.existsSync(filePath)) {
-        fileData = fs.writeFileSync(filePath, JSON.stringify(data));
-    }
-
-    return fileData;
-}
-
 function getPlayerDataByDiscordTag(discordName) {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
@@ -401,22 +375,25 @@ function getAllPlayerData() {
     return pugData;
 }
 
-function savePlayerPugData(discordName, btag, support, tank, dps) {
-    const pugData = loadFile("overwatchpugs.json");
+function savePlayerPugData(discordUser, btag, support, tank, dps) {
+    const pugData = getAllPlayerData();
 
-    let playerData = pugData.find(p => p.discordName === discordName);
+    let playerData = pugData.find(p => p.discordName === discordUser.tag);
 
     if (playerData) {
-        console.log(`Updating player ${discordName}`);
-        playerData.btag = btag;
-        playerData.support = support;
-        playerData.dps = dps;
-        playerData.tank = tank;
+        console.log(`Updating player ${discordUser.tag}`);
+        playerData.discordid = discordUser.id || playerData.discordid;
+        playerData.discordName = discordUser.tag || playerData.discordName;
+        playerData.btag = btag || playerData.btag;
+        playerData.support = Number.isFinite(support) ? support : playerData.support || 0;
+        playerData.dps = Number.isFinite(dps) ? dps : playerData.dps || 0;
+        playerData.tank = Number.isFinite(tank) ? tank : playerData.tank || 0;
     }
     else {
-        console.log(`Adding new player ${discordName}`);
+        console.log(`Adding new player ${discordUser.tag}`);
         playerData = {
-            discordName,
+            discordid: discordUser.id,
+            discordName: discordUser.tag,
             btag,
             support,
             tank,
@@ -429,11 +406,11 @@ function savePlayerPugData(discordName, btag, support, tank, dps) {
     // Save file
     try {
         saveFile("overwatchpugs.json", pugData);
-        return true;
+        return playerData;
     }
     catch(e) {
         console.error("Unable to save player data...")
         console.log(playerData)
-        return false;
+        return null;
     }
 }

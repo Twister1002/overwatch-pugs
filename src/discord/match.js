@@ -18,11 +18,12 @@ function createOverWatchMatch(queuedPlayers) {
         createTeams(matchData.teams);
         matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
-        const teamSRDiff = Math.floor(matchData.teams[0].avgSR() - matchData.teams[1].avgSR());
-
-        if (teamSRDiff > config.maxSRDiff || teamSRDiff < -config.maxSRDiff) {
+        const allTeamSR = matchData.teams.map(team => team.avgSR())
+        const maxTeamSRDiff = Math.max(allTeamSR) - Math.min(allTeamSR);
+        
+        if (maxTeamSRDiff > config.maxSRDiff || maxTeamSRDiff < -config.maxSRDiff) {
             matchData.hasError = true;
-            matchData.responseMessage = `SR is too great of difference at ${teamSRDiff}`;
+            matchData.responseMessage = `SR is too great of difference at ${maxTeamSRDiff}`;
         }
         else {
             matchData.hasError = response.hasError;
