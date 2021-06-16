@@ -38,183 +38,193 @@ client.on("ready", () => {
 })
 
 client.on("message", (message) => {
-    let response = "";
-    let isReply = false;
-    let deleteMessage = false;
-    const messageData = message.content.split(" ");
-    const mainCommand = messageData.shift().toLowerCase();
+    try {
+        let response = "";
+        let isReply = false;
+        let deleteMessage = false;
+        const messageData = message.content.split(" ");
+        const mainCommand = messageData.shift().toLowerCase();
 
-    if (mainCommand === "!pugs") {
-        const subCommand = messageData.shift().toLowerCase();
-        if (!isValidCommand(subCommand)) {
-            console.log(`User attempted to use an invalid command ${subCommand}`)
-            return;
+        if (mainCommand === "!pugs") {
+            const subCommand = messageData.shift().toLowerCase();
+            if (!isValidCommand(subCommand)) {
+                console.log(`User attempted to use an invalid command ${subCommand}`)
+                return;
+            }
+
+            if (!canUseCommand(subCommand, message.member) && !isDev) {
+                message.reply("You do not have permissions to use this command");
+                return;
+            }
+
+            switch (subCommand) {
+                case "info": 
+                    isReply = true;
+                    let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
+                    const playerData = getPlayerDataByDiscordTag(userTag)
+
+                    if (playerData) {
+                        response = `BTag: ${playerData.btag}; Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
+                    }
+                    else {
+                        response = `No record exists ${userTag}. Please set your info using '!pugs setInfo'`;
+                    }
+                    break;
+                case "set": 
+                    // Need to find a new way to handle parameters
+                    const btagIndex = messageData.findIndex(p => p.toLowerCase().includes("btag"));
+                    const supportIndex = messageData.findIndex(p => p.toLowerCase().includes("support"));
+                    const dpsIndex = messageData.findIndex(p => p.toLowerCase().includes("dps"));
+                    const tankIndex = messageData.findIndex(p => p.toLowerCase().includes("tank"));
+
+                    const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1] : null;
+                    const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
+                    const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
+                    const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
+                    isReply = true;
+
+                    if (savePlayerPugData(message.author.tag, bTagInfo, supportRank, tankRank, dpsRank)) {
+                        response = `Saved as ${bTagInfo} Tank: ${tankRank}; DPS: ${dpsRank}; Support: ${supportRank}`;
+                    }
+                    else {
+                        console.log("Failed to save PUGs data");
+                        response = "Failed to save data";
+                    }
+
+                    break;
+                case "startq":
+                    playersInQueue = [];
+                    allowQueue = true;
+                    response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q <tank | dps | support>\`. You may queue for any combination of roles";
+                    break;
+                case "stopq": 
+                    allowQueue = false;
+                    response = "Queue has been closed";
+                    break;
+                case "quser": 
+                    deleteMessage = true;
+                    isReply = false;
+                    const playerToQueue = message.mentions.users.first();
+                    messageData.shift(); // This is only needed to remove the tag
+                    response = addPlayerToQueue(playerToQueue.tag, messageData);
+                    response = `${playerToQueue} ` + response;
+                    break;
+                case "q": 
+                    response = addPlayerToQueue(message.author.tag, messageData);
+                    isReply = true;
+                    deleteMessage = true;
+                    break;
+                case "unq": 
+                    isReply = true;
+                    deleteMessage = true;
+
+                    if (allowQueue) {
+                        const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
+                        playersInQueue = players;
+                        response = `has been removed from queue`
+                    }
+                    else {
+                        response = "PUGs does not currently have a queue. Please wait for a mod to start the queue"
+                    }
+                    break
+                case "lobby": 
+                    response = `${playersInQueue.length} players in queue:\n`;
+                    playersInQueue.forEach(p => {
+                        response += `\n- ${p.discordName} (${p.queue.join(",")})`
+                    })
+                    break;
+                case "startmatch":
+                    response = createMatch();
+                    break;
+                case "maps": 
+                    // Display all map's name
+                    maps.forEach(m => response += `- ${m}\n`)
+                    break;
+                case "users": 
+                    // Display all user's data
+                    const allPlayers = getAllPlayerData();
+                    response = `Users Registered: ${allPlayers.length}\n`;
+
+                    allPlayers.forEach(p => {
+                        response += `- ${p.discordName} (${p.btag})\n`
+                    })
+                    break;
+                case "testmatch":
+                    const testPlayerData = getAllPlayerData();
+
+                    allowQueue = true;
+                    for (let i = 0; i < testPlayerData.length; i++) {
+                        const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
+                        const roles = allowedRoles.filter(r => player[r] > 500);
+                        
+                        addPlayerToQueue(player.discordName, roles);
+                    }
+                    allowQueue = false;
+
+                    response = createMatch(message.channel);
+                    break;
+                case "setup": 
+                    const settings = {};
+
+                    if (messageData.length > 0) {
+                        while (messageData.length > 0) {
+                            const setting = messageData.shift();
+                            const value = messageData.shift();
+
+                            settings[setting] = isNaN(value) ? value : Number(value);
+                        }
+
+                        response = setMatchConfig(settings);
+                    }
+                    else {
+                        const updatedSettings = getMatchConfig();
+
+                        response = JSON.stringify(updatedSettings, (key, value) => (value || ''), 4).replace(/"([^"]+)":/g, '$1:');
+                    }
+                    break;
+                case "commands":
+                    isReply = true;
+
+                    const availableCommands = pugsCommands.filter(c => {
+                        if (c.isModCommand && isUserMod(message.member)) {
+                            return c;
+                        }
+                        else if (!c.isModCommand) {
+                            return c;
+                        }
+                    }).map(c => c.command).join(", ");
+
+                    response = `Available commands: ${availableCommands}`
+                    break;
+                case "help": 
+                    isReply = true;
+                    const commandName = messageData.shift();
+                    const command = pugsCommands.find(x => x.command === commandName);
+                    const userCanUseCommand = canUseCommand(commandName, message.member);
+
+                    if (command && (userCanUseCommand || isDev)) {
+                        response = `${command.help}`
+                        if (command.args) {
+                            response += `\n\`!pugs ${command.command} ${command.args}\``
+                        }
+                    }
+                    else {
+                        const helpCommand = pugsCommands.find(x => x.command === "help");
+                        response = `No command information found for ${commandName}\n!pugs help ${helpCommand.args}`
+                    }
+                    break;
+            }
+
+            sendMessageToServer(message, response, isReply, deleteMessage);
         }
-
-        if (!canUseCommand(subCommand, message.member) && !isDev) {
-            message.reply("You do not have permissions to use this command");
-            return;
-        }
-
-        switch (subCommand) {
-            case "info": 
-                isReply = true;
-                let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
-                const playerData = getPlayerDataByDiscordTag(userTag)
-
-                if (playerData) {
-                    response = `BTag: ${playerData.btag}; Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
-                }
-                else {
-                    response = `No record exists ${userTag}. Please set your info using '!pugs setInfo'`;
-                }
-                break;
-            case "set": 
-                // Need to find a new way to handle parameters
-                const btagIndex = messageData.findIndex(p => p.toLowerCase().includes("btag"));
-                const supportIndex = messageData.findIndex(p => p.toLowerCase().includes("support"));
-                const dpsIndex = messageData.findIndex(p => p.toLowerCase().includes("dps"));
-                const tankIndex = messageData.findIndex(p => p.toLowerCase().includes("tank"));
-
-                const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1] : null;
-                const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
-                const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
-                const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
-                isReply = true;
-
-                if (savePlayerPugData(message.author.tag, bTagInfo, supportRank, tankRank, dpsRank)) {
-                    response = `Saved as ${bTagInfo} Tank: ${tankRank}; DPS: ${dpsRank}; Support: ${supportRank}`;
-                }
-                else {
-                    console.log("Failed to save PUGs data");
-                    response = "Failed to save data";
-                }
-
-                break;
-            case "startq":
-                playersInQueue = [];
-                allowQueue = true;
-                response = "Queue has been opened.\nTo queue for a role, please use \`!pugs q <tank | dps | support>\`. You may queue for any combination of roles";
-                break;
-            case "stopq": 
-                allowQueue = false;
-                response = "Queue has been closed";
-                break;
-            case "quser": 
-                deleteMessage = true;
-                isReply = false;
-                const playerToQueue = message.mentions.users.first();
-                messageData.shift(); // This is only needed to remove the tag
-                response = addPlayerToQueue(playerToQueue.tag, messageData);
-                response = `${playerToQueue} ` + response;
-                break;
-            case "q": 
-                response = addPlayerToQueue(message.author.tag, messageData);
-                isReply = true;
-                deleteMessage = true;
-                break;
-            case "unq": 
-                isReply = true;
-                deleteMessage = true;
-
-                if (allowQueue) {
-                    const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
-                    playersInQueue = players;
-                    response = `has been removed from queue`
-                }
-                else {
-                    response = "PUGs does not currently have a queue. Please wait for a mod to start the queue"
-                }
-                break
-            case "lobby": 
-                response = `${playersInQueue.length} players in queue:\n`;
-                playersInQueue.forEach(p => {
-                    response += `\n- ${p.discordName} (${p.queue.join(",")})`
-                })
-                break;
-            case "startmatch":
-                response = createMatch();
-                break;
-            case "maps": 
-                // Display all map's name
-                maps.forEach(m => response += `- ${m}\n`)
-                break;
-            case "users": 
-                // Display all user's data
-                const allPlayers = getAllPlayerData();
-                response = `Users Registered: ${allPlayers.length}\n`;
-
-                allPlayers.forEach(p => {
-                    response += `- ${p.discordName} (${p.btag})\n`
-                })
-                break;
-            case "testmatch":
-                const testPlayerData = getAllPlayerData();
-
-                allowQueue = true;
-                for (let i = 0; i < testPlayerData.length; i++) {
-                    const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
-                    const roles = allowedRoles.filter(r => player[r] > 500);
-                    
-                    addPlayerToQueue(player.discordName, roles);
-                }
-                allowQueue = false;
-
-                response = createMatch(message.channel);
-                break;
-            case "setup": 
-                const settings = {};
-
-                if (messageData.length > 0) {
-                    while (messageData.length > 0) {
-                        const setting = messageData.shift();
-                        const value = messageData.shift();
-
-                        settings[setting] = isNaN(value) ? value : Number(value);
-                    }
-
-                    response = setMatchConfig(settings);
-                }
-                else {
-                    const updatedSettings = getMatchConfig();
-
-                    response = JSON.stringify(updatedSettings, (key, value) => (value || ''), 4).replace(/"([^"]+)":/g, '$1:');
-                }
-                break;
-            case "commands":
-                isReply = true;
-
-                const availableCommands = pugsCommands.filter(c => {
-                    if (c.isModCommand && isUserMod(message.member)) {
-                        return c;
-                    }
-                    else if (!c.isModCommand) {
-                        return c;
-                    }
-                }).map(c => c.command).join(", ");
-
-                response = `Available commands: ${availableCommands}`
-                break;
-            case "help": 
-                isReply = true;
-                const commandName = messageData.shift();
-                const command = pugsCommands.find(x => x.command === commandName);
-                const userCanUseCommand = canUseCommand(commandName, message.member);
-
-                if (command && (userCanUseCommand || isDev)) {
-                    response = `${command.help}`
-                    if (command.args) {
-                        response += `\n\`${command.args}\``
-                    }
-                }
-                else {
-                    const helpCommand = pugsCommands.find(x => x.command === "help");
-                    response = `No command information found for ${commandName}\n${helpCommand.args}`
-                }
-                break;
-        }
-
-        sendMessageToServer(message, response, isReply, deleteMessage);
+    }
+    catch (err) {
+        console.error(`A fatal error has caused the application to crash. This is the main error catcher.\n${err.message}`)
+        sendMessageToServer(
+            message,
+            `Whoops! Something wrong happened... :(. The command may have been typed incorrectly or something just caught fire. Check your command and try again`,
+            false, false
+        )
     }
 })
 
