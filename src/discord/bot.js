@@ -38,55 +38,60 @@ client.on("message", (message) => {
     try {
         const messageData = message.content.split(" ");
         const mainCommand = messageData.shift().toLowerCase();
-        const subCommand = messageData.shift().toLowerCase() || undefined;
+        const subCommand = messageData.shift().toLowerCase();
         const command = getCommand(mainCommand.substr(1), subCommand);
+        const globalCommand = getCommand("global", subCommand);
         const isMod = isUserMod(message.member);
 
-        if (command && (!command.isModCommand || (isMod && command.isModCommand))) {
-            if (subCommand === "help") {
-                let response = "";
-                const commandInfoName = messageData.shift();
-                const commandInfo = getCommand(mainCommand.substr(1), commandInfoName);
+        if (globalCommand) {
+            switch (globalCommand.name) {
+                case "help": {
+                    let response = "";
+                    const commandInfoName = messageData.shift();
+                    const commandInfo = getCommand(mainCommand.substr(1), commandInfoName);
 
-                if (commandInfo && (!commandInfo.isModCommand || (isMod && commandInfo.isModCommand))) {
-                    response = `${command.help}`;
+                    if (commandInfo && (!commandInfo.isModCommand || (isMod && commandInfo.isModCommand))) {
+                        response = `\n${commandInfo.name}: ${commandInfo.help}`;
 
-                    if (commandInfo.args) {
-                        response += `\n\`!pugs ${commandInfo.name} ${commandInfo.args}\``
+                        if (commandInfo.args) {
+                            response += `\n\`${mainCommand} ${commandInfo.name} ${commandInfo.args}\``
+                        }
+
+                        message.reply(response);
+                    }
+                    else {
+                        response = `No command information found for ${commandInfoName}\n${mainCommand} help ${globalCommand.args}`
+                        message.reply(response);
+                    }
+                }
+                    break;
+                case "commands": {
+                    let response = "The commands you can use are: \n";
+                    const commands = getCommands(mainCommand.substr(1));
+
+                    if (commands.length > 0) {
+                        response += commands
+                        .filter(x => (!x.isModCommand || (isMod && x.isModCommand)))
+                        .map(x => `\`${x.name}\``)
+                        .join(", ");
+                    }
+                    else {
+                        response = "No commands are available at the moment."
                     }
 
-                    message.reply(response);
+                    message.reply(response)
                 }
-                else {
-                    response = `No command information found for ${commandInfoName}\n!pugs help ${command.args}`
-                    message.reply(response);
-                }
+                    break;
             }
-            else if (subCommand === "commands") {
-                let response = "The commands you ca use are: \n";
-                const commands = getCommands(mainCommand.substr(1));
-
-                if (commands.length > 0) {
-                    response += commands
-                    .filter(x => (!x.isModCommand || (isMod && x.isModCommand)))
-                    .map(x => `\`${x.name}\``)
-                    .join(", ");
-                }
-                else {
-                    response = "No commands are available at the moment."
-                }
-
-                message.reply(response)
-            }
-            else {
-                switch (mainCommand) {
-                    case "!ow":
-                        overwatch(message, command, messageData);
-                        break;
-                    case "!val": 
-                        valorant(message, command, messageData);
-                        break;
-                }
+        }
+        else if (command && (!command.isModCommand || (isMod && command.isModCommand))) {
+            switch (mainCommand) {
+                case "!ow":
+                    overwatch(message, command, messageData);
+                    break;
+                case "!val": 
+                    valorant(message, command, messageData);
+                    break;
             }
         }
     }
