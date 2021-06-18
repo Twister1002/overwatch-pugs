@@ -1,4 +1,18 @@
 {
+    "global": [
+        {
+            "name": "commands",
+            "isModCommand": false,
+            "help": "Shows all the available commands for the user",
+            "args": ""
+        },
+        {
+            "name": "help",
+            "isModCommand": false,
+            "help": "Shows all the available commands for the user",
+            "args": "<command>"
+        }
+    ],
     "ow": [
         {
             "name": "info",
@@ -29,18 +43,6 @@
             "isModCommand": false,
             "help": "Sets your Overwatch data for match making",
             "args": "btag <Battle.NET tag> support <SR> dps <SR> tank <SR>"
-        },
-        {
-            "name": "commands",
-            "isModCommand": false,
-            "help": "Shows all the available commands for the user",
-            "args": ""
-        },
-        {
-            "name": "help",
-            "isModCommand": false,
-            "help": "Shows all the available commands for the user",
-            "args": "<command>"
         },
         {
             "name": "q",
@@ -93,17 +95,6 @@
         }
     ],
     "val": [
-        {
-            "name": "help",
-            "isModCommand": false,
-            "help": "",
-            "args": ""
-        },
-        {
-            "name": "commands",
-            "isModCommand": false,
-            "help": "",
-            "args": ""
-        }
+        
     ]
 }
