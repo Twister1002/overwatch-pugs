@@ -88,27 +88,31 @@ client.on("message", (message) => {
 
 function doUpdates() {
     // Version 1.1.1
-    const data = loadFile("overwatchpugs.json");
+    const realData = loadFile("playerData.json");
 
-    // If we have a record and the first record doesn't contain the player's ow or val data 
-    // Create the update
-    data.forEach(x => {
-        if (!x.ow) {
-            x.ow = {}
-        }
+    if (!realData) {
+        const data = loadFile("overwatchpugs.json");
 
-        x.ow.btag = x.btag ? x.btag : "";
-        x.ow.support = x.support ? x.support : x.support || 0;
-        x.ow.tank = x.tank ? x.tank : x.tank || 0;
-        x.ow.dps = x.dps ? x.dps : x.dps || 0;
+        // If we have a record and the first record doesn't contain the player's ow or val data 
+        // Create the update
+        data.forEach(x => {
+            if (!x.ow) {
+                x.ow = {}
+            }
 
-        delete x.btag;
-        delete x.support;
-        delete x.tank;
-        delete x.dps;
-    });
-    
-    saveFile("playerdata.json", data);
+            x.ow.btag = x.btag ? x.btag : "";
+            x.ow.support = x.support ? x.support : x.support || 0;
+            x.ow.tank = x.tank ? x.tank : x.tank || 0;
+            x.ow.dps = x.dps ? x.dps : x.dps || 0;
+
+            delete x.btag;
+            delete x.support;
+            delete x.tank;
+            delete x.dps;
+        });
+
+        saveFile("playerdata.json", data);
+    }
 }
 
 function loginBot() {
