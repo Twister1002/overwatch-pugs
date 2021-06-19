@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile } = require("./utilities");
+const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile, getCommand } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -53,7 +53,7 @@ function overwatch(message, command, messageData) {
         case "startq": {
             playersInQueue = [];
             allowQueue = true;
-            const commandInfo = getCommand("q");
+            const commandInfo = getCommand("ow", "q");
 
             response = `Queue has been opened.\nTo queue for a role, please use \`!pugs ${commandInfo.command} ${commandInfo.args}\`.`;
         } break;
