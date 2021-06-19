@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const commands = require("../data/commands.json");
+const modPermissions = require("../data/permissions.json");
 
 //The maximum is exclusive and the minimum is inclusive
 function getRandomInt(min, max) {
@@ -80,13 +82,39 @@ function loadFile(fileName) {
 function saveFile(fileName, data) {
     const filePath = path.join(__dirname, "../", "data", fileName);
 
-    if (fs.existsSync(filePath)) {
-        fileData = fs.writeFileSync(filePath, JSON.stringify(data));
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data));
+        return true;
     }
-
-    return fileData;
+    catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
+function getCommands(main) {
+    if (commands[main]) {
+        return commands[main];
+    }
+    else {
+        return [];
+    }
+}
+
+function getCommand(main, sub) {
+    const mainCommands = getCommands(main);
+
+    if (mainCommands.length > 0) {
+        return mainCommands.find(x => sub === x.name);
+    }
+    else {
+        return [];
+    }
+}
+
+function isUserMod(discordUser) {
+    return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
+}
 
 module.exports = {
     getRandomInt,
@@ -94,5 +122,8 @@ module.exports = {
     getSRTier,
     findUserInGuild,
     saveFile,
-    loadFile
+    loadFile,
+    getCommands,
+    getCommand,
+    isUserMod
 }

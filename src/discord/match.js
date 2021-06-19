@@ -19,7 +19,7 @@ function createOverWatchMatch(queuedPlayers) {
         matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
         const allTeamSR = matchData.teams.map(team => team.avgSR())
-        const maxTeamSRDiff = Math.max(allTeamSR) - Math.min(allTeamSR);
+        const maxTeamSRDiff = Math.max(...allTeamSR) - Math.min(...allTeamSR);
         
         if (maxTeamSRDiff > config.maxSRDiff || maxTeamSRDiff < -config.maxSRDiff) {
             matchData.hasError = true;

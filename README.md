@@ -9,6 +9,16 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.2.0
+- Implemented Valorant for match making
+
+## Version 1.1.1
+- Created update code to convert player data to usable data information for each game
+- Updated match making code to reflect update code
+
+## Version 1.1.0
+- Code refactoring to allow new implementations of other games
+
 ## Version 1.0.5
 - Displays match information within an embedded block
 - Players can now queue with the "all" option. It will queue them for all roles available to them
