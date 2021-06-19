@@ -311,11 +311,10 @@ function savePlayerPugData(discordUser, btag, support, tank, dps) {
     }
 
     // Save file
-    try {
-        saveFile("overwatchpugs.json", pugData);
+    if (saveFile("overwatchpugs.json", pugData)) {
         return playerData;
     }
-    catch (e) {
+    else {
         console.error("Unable to save player data...")
         console.log(playerData)
         return null;

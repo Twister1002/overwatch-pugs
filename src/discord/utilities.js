@@ -82,11 +82,14 @@ function loadFile(fileName) {
 function saveFile(fileName, data) {
     const filePath = path.join(__dirname, "../", "data", fileName);
 
-    if (fs.existsSync(filePath)) {
-        fileData = fs.writeFileSync(filePath, JSON.stringify(data));
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data));
+        return true;
     }
-
-    return fileData;
+    catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
 function getCommands(main) {
