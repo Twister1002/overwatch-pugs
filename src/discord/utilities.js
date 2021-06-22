@@ -122,6 +122,10 @@ function getAllPlayerData() {
     return pugData;
 }
 
+function getPlayerDataByDiscordTag(discordName) {
+    return getAllPlayerData().find(p => p.discordName === discordName);
+}
+
 module.exports = {
     getRandomInt,
     parseToNumber,
@@ -132,5 +136,6 @@ module.exports = {
     getCommands,
     getCommand,
     isUserMod,
-    getAllPlayerData
+    getAllPlayerData,
+    getPlayerDataByDiscordTag
 }
