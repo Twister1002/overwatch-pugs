@@ -66,7 +66,10 @@ function valorant(message, command, messageData) {
         }
             break;
         case "users": {
+            const players = getAllPlayerData().filter(x => x.val);
+            let response = `Users registered for Valorant: ${players.length}\n${players.map(x => `- ${x.discordName} (${x.val.riotTag})`).join("\n")}`;
 
+            message.channel.send(response);
         }
             break;
         case "set": {

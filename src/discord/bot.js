@@ -20,7 +20,6 @@ client.on("message", (message) => {
     if (botID.includes(message.author.id)) {
         return;
     }
-
     
     try {
         const messageData = message.content.split(" ");
