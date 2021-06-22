@@ -1,5 +1,13 @@
 const { MessageEmbed } = require("discord.js");
-const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile, getCommand, getPlayerDataByDiscordTag, getAllPlayerData } = require("./utilities");
+const { 
+    parseToNumber,
+    getSRTier,
+    getRandomInt,
+    getCommand,
+    getPlayerDataByDiscordTag,
+    getAllPlayerData,
+    addPlayer 
+} = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -40,9 +48,15 @@ function overwatch(message, command, messageData) {
             const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
             const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
 
-            const savedPlayerData = savePlayerPugData(message.author, bTagInfo, supportRank, tankRank, dpsRank);
-            if (savedPlayerData) {
-                response = `Saved as ${savedPlayerData.ow.btag} Tank: ${savedPlayerData.ow.tank}; DPS: ${savedPlayerData.ow.dps}; Support: ${savedPlayerData.ow.support}`;
+            const dataToSave = {btag: bTagInfo}
+            if (tankRank) { dataToSave.tank = tankRank; }
+            if (supportRank) { dataToSave.support = supportRank; }
+            if (dpsRank) { dataToSave.dps = dpsRank; }
+            const isSaved = addPlayer(message.author, "ow", dataToSave)
+
+            if (isSaved) {
+                const playerData = getPlayerDataByDiscordTag(message.author.tag).ow;
+                response = `Saved as ${playerData.btag} Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
             }
             else {
                 console.log("Failed to save PUGs data");
@@ -110,16 +124,12 @@ function overwatch(message, command, messageData) {
             break;
         case "users": {
             // Display all user's data
-            const allPlayers = getAllPlayerData();
-            response = `Users Registered: ${allPlayers.length}\n`;
-
-            allPlayers.forEach(p => {
-                response += `- ${p.discordName} (${p.btag})\n`
-            })
+            const owPlayers = getAllPlayerData().filter(x => x.ow);
+            response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow.btag})`).join("\n")}`;
         }
             break;
         case "testmatch": {
-            const testPlayerData = getAllPlayerData();
+            const testPlayerData = getAllPlayerData().filter(x => x.ow);
 
             allowQueue = true;
             for (let i = 0; i < testPlayerData.length; i++) {
@@ -279,47 +289,6 @@ function sendMessageToServer(message, response, isReply = false, deleteMessage =
                 message.delete().catch(err => console.error(err));
             }
         }
-    }
-}
-
-function savePlayerPugData(discordUser, btag, support, tank, dps) {
-    const pugData = getAllPlayerData();
-
-    let playerData = pugData.find(p => p.discordName === discordUser.tag);
-
-    if (playerData) {
-        console.log(`Updating player ${discordUser.tag}`);
-        playerData.discordid = discordUser.id || playerData.discordid;
-        playerData.discordName = discordUser.tag || playerData.discordName;
-        playerData.ow.btag = btag || playerData.ow.btag;
-        playerData.ow.support = Number.isFinite(support) ? support : playerData.ow.support || 0;
-        playerData.ow.dps = Number.isFinite(dps) ? dps : playerData.ow.dps || 0;
-        playerData.ow.tank = Number.isFinite(tank) ? tank : playerData.ow.tank || 0;
-    }
-    else {
-        console.log(`Adding new player ${discordUser.tag}`);
-        playerData = {
-            discordid: discordUser.id,
-            discordName: discordUser.tag,
-            ow: {
-                btag,
-                support,
-                tank,
-                dps
-            }
-        };
-
-        pugData.push(playerData);
-    }
-
-    // Save file
-    if (saveFile("playerdata.json", pugData)) {
-        return playerData;
-    }
-    else {
-        console.error("Unable to save player data...")
-        console.log(playerData)
-        return null;
     }
 }
 
