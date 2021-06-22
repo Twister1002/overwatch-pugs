@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile, getCommand } = require("./utilities");
+const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile, getCommand, getPlayerDataByDiscordTag, getAllPlayerData } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -321,10 +321,6 @@ function savePlayerPugData(discordUser, btag, support, tank, dps) {
         console.log(playerData)
         return null;
     }
-}
-
-function getPlayerDataByDiscordTag(discordName) {
-    return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
 module.exports = overwatch;
