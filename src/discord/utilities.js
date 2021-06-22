@@ -116,6 +116,12 @@ function isUserMod(discordUser) {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
 }
 
+function getAllPlayerData() {
+    const pugData = loadFile("playerdata.json");
+
+    return pugData;
+}
+
 module.exports = {
     getRandomInt,
     parseToNumber,
@@ -125,5 +131,6 @@ module.exports = {
     loadFile,
     getCommands,
     getCommand,
-    isUserMod
+    isUserMod,
+    getAllPlayerData
 }

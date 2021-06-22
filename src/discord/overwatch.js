@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile } = require("./utilities");
+const { parseToNumber, getSRTier, getRandomInt, saveFile, loadFile, getCommand } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
 const maps = require("../data/maps.json");
@@ -55,7 +55,7 @@ function overwatch(message, command, messageData) {
             allowQueue = true;
             const commandInfo = getCommand("ow", "q");
 
-            response = `Queue has been opened.\nTo queue for a role, please use \`!pugs ${commandInfo.command} ${commandInfo.args}\`.`;
+            response = `Queue has been opened.\nTo queue for a role, please use \`!ow ${commandInfo.name} ${commandInfo.args}\`.`;
         } 
         break;
         case "stopq": {
@@ -124,9 +124,8 @@ function overwatch(message, command, messageData) {
             allowQueue = true;
             for (let i = 0; i < testPlayerData.length; i++) {
                 const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
-                const roles = allowedRoles.filter(r => player[r] > 500);
-
-                addPlayerToQueue(player.discordName, roles);
+                
+                addPlayerToQueue(player.discordName, ["all"]);
             }
             allowQueue = false;
 
@@ -204,7 +203,7 @@ function createMatch(channel) {
 
             playerList.push({
                 ...playerInfo,
-                name: playerInfo.btag,
+                ...playerInfo.ow,
                 queue: p.queue
             })
         })
@@ -314,7 +313,7 @@ function savePlayerPugData(discordUser, btag, support, tank, dps) {
     }
 
     // Save file
-    if (saveFile("overwatchpugs.json", pugData)) {
+    if (saveFile("playerdata.json", pugData)) {
         return playerData;
     }
     else {
@@ -326,12 +325,6 @@ function savePlayerPugData(discordUser, btag, support, tank, dps) {
 
 function getPlayerDataByDiscordTag(discordName) {
     return getAllPlayerData().find(p => p.discordName === discordName);
-}
-
-function getAllPlayerData() {
-    const pugData = loadFile("overwatchpugs.json");
-
-    return pugData;
 }
 
 module.exports = overwatch;
