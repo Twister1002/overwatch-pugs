@@ -10,7 +10,16 @@
 - Fix parsing issue with setting players info
 
 ## Version 1.2.0
-- Implemented Valorant for match making
+- Implemented Valorant. Users can now used !val as a command to do basic commands like overwatch
+- Updated and moved methods to utility methods
+- Overwatch command changed to !ow
+- Fixed isses and problems with commands
+- Updated Overwatch configuration data
+- Updated main entrance to bot 
+ - Now only listens to incomming messages from users instead of itself.
+ - Fixed bugs and crashes relating to incomming messages without commands
+- Fixed bug with overwatch matchmaking not checking for SR difference
+- Added global commands
 
 ## Version 1.1.1
 - Created update code to convert player data to usable data information for each game
