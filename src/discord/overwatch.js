@@ -55,7 +55,8 @@ function overwatch(message, command, messageData) {
             const isSaved = addPlayer(message.author, "ow", dataToSave)
 
             if (isSaved) {
-                response = `Saved as ${dataToSave.btag} Tank: ${dataToSave.tank}; DPS: ${dataToSave.dps}; Support: ${dataToSave.support}`;
+                const playerData = getPlayerDataByDiscordTag(message.author.tag).ow;
+                response = `Saved as ${playerData.btag} Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
             }
             else {
                 console.log("Failed to save PUGs data");
@@ -123,12 +124,8 @@ function overwatch(message, command, messageData) {
             break;
         case "users": {
             // Display all user's data
-            const allPlayers = getAllPlayerData().filter(x => x.ow);
-            response = `Users Registered: ${allPlayers.length}\n`;
-
-            allPlayers.forEach(p => {
-                response += `- ${p.discordName} (${p.btag})\n`
-            })
+            const owPlayers = getAllPlayerData().filter(x => x.ow);
+            response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow.btag})`).join("\n")}`;
         }
             break;
         case "testmatch": {
