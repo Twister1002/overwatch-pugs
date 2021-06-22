@@ -126,6 +126,27 @@ function getPlayerDataByDiscordTag(discordName) {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
+function addPlayer(discordUser, game, data) {
+    const allPlayerData = getAllPlayerData();
+    const playerData = allPlayerData.find(x => x.discordName === discordUser.tag) || {
+        discordName: discordUser.tag,
+        discordid: discordUser.id
+    };
+
+    playerData[game] = {
+        ...playerData[game],
+        ...data
+    }
+
+    return saveFile("playerdata.json", allPlayerData);
+}
+
+function removePlayer(discordUser) {
+    const allPlayerData = getAllPlayerData().filter(x => x.discordName !== discordUser.tag);
+
+    return saveFile("playerdata.json", allPlayerData);
+}
+
 module.exports = {
     getRandomInt,
     parseToNumber,
@@ -137,5 +158,7 @@ module.exports = {
     getCommand,
     isUserMod,
     getAllPlayerData,
-    getPlayerDataByDiscordTag
+    getPlayerDataByDiscordTag,
+    addPlayer,
+    removePlayer
 }

@@ -1,4 +1,4 @@
-const { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag } = require("./utilities");
+const { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer } = require("./utilities");
 const valorantConfig = require("../data/valorantconfig.json");
 const { MessageEmbed } = require("discord.js");
 
@@ -70,7 +70,20 @@ function valorant(message, command, messageData) {
         }
             break;
         case "set": {
+            const riotTag = messageData.shift();
+            const rank = messageData.shift().toLowerCase();
 
+            const result = addPlayer(message.author, "val", {
+                riotTag,
+                rank
+            });
+
+            if (result) {
+                message.reply(`your info has been saved: ${riotTag} at rank ${rank}`);
+            }
+            else {
+                message.reply("Unable to save your info due to an error.");
+            }
         }
             break;
         case "startmatch": {
@@ -130,7 +143,7 @@ function createMatch(message) {
         hasError: false,
         hasFatalError: false
     }
-    
+
     while (attemptedMatches < 5000) {
         attemptedMatches++;
         let queuedPlayers = [...playersInQueue];
