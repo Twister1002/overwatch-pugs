@@ -97,7 +97,7 @@ function valorant(message, command, messageData) {
             break;
         case "testmatch": {
             canQueue = true;
-            const players = getAllPlayerData();
+            const players = getAllPlayerData().filter(x => x.val);
             players.forEach(x => addPlayerToQueue(x.discordName));
             canQueue = false;
 
@@ -122,7 +122,7 @@ function addPlayerToQueue(discordUserTag) {
                 discordName: playerData.discordName,
                 discordid: playerData.discordid,
                 ...playerData.val,
-                rank: getRandomInt(0, valorantConfig.ranks.length) // For testing
+                rank: valorantConfig.ranks.findIndex(x => x === playerData.val.rank)
             });
             response.message = "Added to queue";
         }
@@ -157,7 +157,13 @@ function createMatch(message) {
             matchInfo.teams.push({
                 name: valorantConfig.teamNames[matchInfo.teams.length],
                 players: [],
-                teamRank: 0
+                teamRank: 0,
+                avgRank: function() {
+                    return Math.floor(this.teamRank / this.players.length)
+                },
+                avgRankName: function () {
+                    return valorantConfig.ranks[Math.floor(this.teamRank / this.players.length)]
+                }
             })
         }
 
@@ -192,14 +198,12 @@ function createMatch(message) {
         .setColor("#0099ff")
         .setTitle("Valorant Match")
         .setDescription(`Map: ${matchInfo.map}`)
-    
+        .addField("\u200B", "\u200B", false);
+
         matchInfo.teams.forEach(team => {
-            embeddedMessage.addField("\u200B", "\u200B", false)
-            embeddedMessage.addField(`Team ${team.name}`, "RANK", false);
-            embeddedMessage.addField(`Players:`, team.players.map(p => {
+            embeddedMessage.addField(`${team.name} - ${team.avgRankName()}`, team.players.map(p => {
                 const discord = p.discordid ? `<@${p.discordid}>` : p.discordName;
-    
-                return `${discord}\nVALORANT TAG\n${valorantConfig.ranks[p.rank]}`
+                return `${discord}\n${p.riotTag}\n${valorantConfig.ranks[p.rank]}`
             }).join("\n") || "None", true);
         })
     
