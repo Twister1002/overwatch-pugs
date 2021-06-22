@@ -82,11 +82,14 @@ function loadFile(fileName) {
 function saveFile(fileName, data) {
     const filePath = path.join(__dirname, "../", "data", fileName);
 
-    if (fs.existsSync(filePath)) {
-        fileData = fs.writeFileSync(filePath, JSON.stringify(data));
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(data));
+        return true;
     }
-
-    return fileData;
+    catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
 function getCommands(main) {
@@ -113,6 +116,12 @@ function isUserMod(discordUser) {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
 }
 
+function getAllPlayerData() {
+    const pugData = loadFile("playerdata.json");
+
+    return pugData;
+}
+
 module.exports = {
     getRandomInt,
     parseToNumber,
@@ -122,5 +131,6 @@ module.exports = {
     loadFile,
     getCommands,
     getCommand,
-    isUserMod
+    isUserMod,
+    getAllPlayerData
 }

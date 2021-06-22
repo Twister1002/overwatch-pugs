@@ -12,6 +12,10 @@
 ## Version 1.2.0
 - Implemented Valorant for match making
 
+## Version 1.1.1
+- Created update code to convert player data to usable data information for each game
+- Updated match making code to reflect update code
+
 ## Version 1.1.0
 - Code refactoring to allow new implementations of other games
 

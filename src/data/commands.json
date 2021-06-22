@@ -95,6 +95,78 @@
         }
     ],
     "val": [
-        
+        {
+            "name": "info",
+            "isModCommand": false,
+            "help": "Provides info about the user's stats",
+            "args": "<DiscordUser>"
+        },
+        {
+            "name": "maps",
+            "isModCommand": false,
+            "help": "All maps available for matches",
+            "args": ""
+        },
+        {
+            "name": "users",
+            "isModCommand": false,
+            "help": "Shows all users who are registered in the bot",
+            "args": ""
+        },
+        {
+            "name": "lobby",
+            "isModCommand": false,
+            "help": "Shows all players in queue",
+            "args": ""
+        },
+        {
+            "name": "set",
+            "isModCommand": false,
+            "help": "Sets your Overwatch data for match making",
+            "args": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
+        },
+        {
+            "name": "q",
+            "isModCommand": false,
+            "help": "Queues you into the system for match making",
+            "args": ""
+        },
+        {
+            "name": "quser",
+            "isModCommand": true,
+            "help": "Queues a specific user for match making",
+            "args": "<DiscordUser>"
+        },
+        {
+            "name": "unq",
+            "isModCommand": false,
+            "help": "Removed the player from queue",
+            "args": ""
+        },
+        {
+            "name": "startmatch",
+            "isModCommand": true,
+            "help": "Notifies the system to create matches from players in lobby",
+            "args": ""
+        },
+        {
+            "name": "startq",
+            "isModCommand": true,
+            "help": "Starts the queue and allows players to queue for match making",
+            "args": ""
+        },
+        {
+            "name": "stopq",
+            "isModCommand": true,
+            "help": "Stops the queue and disallows players to queue for match making",
+            "args": ""
+        },
+        {
+            "name": "testmatch",
+            "isModCommand": true,
+            "isDevCommand": true,
+            "help": "TESTING ONLY",
+            "args": ""
+        }
     ]
 }
