@@ -58,7 +58,9 @@ function valorant(message, command, messageData) {
         }
             break;
         case "maps": {
+            const maps = valorantConfig.maps;
 
+            message.channel.send(`Available Maps ${maps.length}\n${maps.map(x => `- ${x}`).join("\n")}`)
         }
             break;
         case "info": {
