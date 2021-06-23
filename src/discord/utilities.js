@@ -137,6 +137,7 @@ function addPlayer(discordUser, game, data) {
         ...data
     }
 
+    console.log(`Saving player ${playerData.discordName} - (${playerData.discordid})`)
     return saveFile("playerdata.json", allPlayerData);
 }
 
