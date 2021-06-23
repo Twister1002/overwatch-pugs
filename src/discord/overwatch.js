@@ -10,7 +10,7 @@ const {
 } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
 const allowedRoles = require("../data/roles.json");
-const maps = require("../data/maps.json");
+const overwatchConfig = require("../data/overwatchconfig.json");
 
 let allowQueue = false;
 let playersInQueue = [];
@@ -119,7 +119,7 @@ function overwatch(message, command, messageData) {
             break;
         case "maps": {
             // Display all map's name
-            maps.forEach(m => response += `- ${m}\n`)
+            overwatchConfig.maps.forEach(m => response += `- ${m}\n`)
         }
             break;
         case "users": {

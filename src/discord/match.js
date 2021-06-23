@@ -1,5 +1,4 @@
 const { getRandomInt } = require("./utilities");
-const overwatchMaps = require("../data/maps.json");
 const originalConfig = require("../data/overwatchconfig.json");
 let config = originalConfig;
 
@@ -16,7 +15,7 @@ function createOverWatchMatch(queuedPlayers) {
 
     if (queuedPlayers.length >= playersNeeded) {
         createTeams(matchData.teams);
-        matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
+        matchData.map = config.maps[getRandomInt(0, config.maps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
         const allTeamSR = matchData.teams.map(team => team.avgSR())
         const maxTeamSRDiff = Math.max(...allTeamSR) - Math.min(...allTeamSR);
