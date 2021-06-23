@@ -9,6 +9,9 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.2.4
+- Fixed bug where valorant would attempt to make a match when not enough players are queued
+
 ## Version 1.2.0
 - Implemented Valorant. Users can now used !val as a command to do basic commands like overwatch
 - Updated and moved methods to utility methods

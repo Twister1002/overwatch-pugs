@@ -92,7 +92,7 @@ function valorant(message, command, messageData) {
         }
             break;
         case "startmatch": {
-
+            createMatch(message);
         }
             break;
         case "testmatch": {
@@ -155,6 +155,12 @@ function createMatch(message) {
         hasFatalError: false
     }
 
+    // Do we have enough players in order to make the match?
+    if (playersInQueue.length < (valorantConfig.maxTeams * valorantConfig.maxPlayersPerTeam)) {
+        message.channel.send("There are not enough players to make a match.");
+        return;
+    }
+
     while (attemptedMatches < 5000) {
         attemptedMatches++;
         let queuedPlayers = [...playersInQueue];
@@ -176,13 +182,16 @@ function createMatch(message) {
         for (let i = 0; i < (valorantConfig.maxPlayersPerTeam * valorantConfig.maxTeams); i++) {
             const teamsNeedPlayers = matchInfo.teams.filter(team => team.players.length < valorantConfig.maxPlayersPerTeam);
 
-            if (teamsNeedPlayers.length > 0) {
+            if (teamsNeedPlayers.length > 0 && queuedPlayers.length > 0) {
                 const team = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
                 const player = queuedPlayers[getRandomInt(0, queuedPlayers.length)];
                 queuedPlayers = queuedPlayers.filter(x => x !== player);
 
                 team.players.push(player);
                 team.teamRank += player.rank;
+            }
+            else {
+                break;
             }
         }
 
