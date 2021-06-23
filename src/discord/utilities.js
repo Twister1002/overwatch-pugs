@@ -128,7 +128,7 @@ function getPlayerDataByDiscordTag(discordName) {
 
 function addPlayer(discordUser, game, data) {
     const allPlayerData = getAllPlayerData();
-    let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
+    let playerData = allPlayerData.find(x => x.discordName === discordUser.tag) || {};
     playerData.discordName = discordUser.tag;
     playerData.discordid = discordUser.id;
 
