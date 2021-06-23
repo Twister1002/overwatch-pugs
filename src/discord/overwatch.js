@@ -35,6 +35,7 @@ function overwatch(message, command, messageData) {
         }
             break;
         case "set": {
+            deleteMessage = true;
             isReply = true;
 
             // Need to find a new way to handle parameters
@@ -107,10 +108,7 @@ function overwatch(message, command, messageData) {
         }
             break;
         case "lobby": {
-            response = `${playersInQueue.length} players in queue:\n`;
-            playersInQueue.forEach(p => {
-                response += `\n- ${p.discordName} (${p.queue.join(",")})`
-            })
+            response = `${playersInQueue.length} players in queue:\n${playersInQueue.map(x => `- ${x.discordName} (${x.queue.join(",")})`).join("\n")}`;
         }
             break;
         case "startmatch": {

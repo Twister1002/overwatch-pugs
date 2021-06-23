@@ -11,6 +11,7 @@
 
 ## Version 1.2.5
 - Fixed issue with updating player data not adding ids and names
+- Now deletes messaged by users when setting their data
 
 ## Version 1.2.4
 - Fixed bug where valorant would attempt to make a match when not enough players are queued

@@ -84,6 +84,7 @@ function valorant(message, command, messageData) {
             });
 
             if (result) {
+                message.delete().catch(e => console.log(e));
                 message.reply(`your info has been saved: ${riotTag} at rank ${rank}`);
             }
             else {
