@@ -11,6 +11,10 @@
 
 ## Version 1.2.4
 - Fixed bug where valorant would attempt to make a match when not enough players are queued
+- Removed old file from tracking in the depot
+- Combined Overwatch maps in with its configuration data
+- Fixed bug when updating from 1.1.1
+- Fixed bug where users could be added to queue when game data doesn't exist for the user
 
 ## Version 1.2.0
 - Implemented Valorant. Users can now used !val as a command to do basic commands like overwatch
