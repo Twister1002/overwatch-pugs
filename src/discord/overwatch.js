@@ -175,23 +175,28 @@ function addPlayerToQueue(discordName, roles) {
     const filteredRoles = wantedRoles.filter(r => player.ow[r.toLowerCase()] >= 500).map(r => r.toLowerCase());
 
     if (allowQueue) {
-        if (roles.length > 0) {
-            if (filteredRoles.length > 0) {
-                const inQueue = playersInQueue.filter(q => q.discordName !== discordName);
-                inQueue.push({
-                    discordName,
-                    queue: filteredRoles
-                })
+        if (player.ow) {
+            if (roles.length > 0) {
+                if (filteredRoles.length > 0) {
+                    const inQueue = playersInQueue.filter(q => q.discordName !== discordName);
+                    inQueue.push({
+                        discordName,
+                        queue: filteredRoles
+                    })
 
-                playersInQueue = inQueue;
-                response = `is queued for ${filteredRoles.join(", ")}.`
+                    playersInQueue = inQueue;
+                    response = `is queued for ${filteredRoles.join(", ")}.`
+                }
+                else {
+                    response = `You can not queue for with invalid SR. ${filteredRoles.map(r => `${r} (${player.ow[r]})`).join(" ")}`
+                }
             }
             else {
-                response = `You can not queue for with invalid SR. ${filteredRoles.map(r => `${r} (${player.ow[r]})`).join(" ")}`
+                response = "You must provide a role to queue for."
             }
         }
         else {
-            response = "You must provide a role to queue for."
+            response = "No overwatch data found. Please use !ow set";
         }
     }
     else {

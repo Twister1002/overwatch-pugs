@@ -117,18 +117,24 @@ function addPlayerToQueue(discordUserTag) {
         const playerData = getPlayerDataByDiscordTag(discordUserTag);
         const isInQueue = playersInQueue.some(x => x === playerData.discordName);
 
-        if (!isInQueue) {
-            playersInQueue.push({
-                discordName: playerData.discordName,
-                discordid: playerData.discordid,
-                ...playerData.val,
-                rank: valorantConfig.ranks.findIndex(x => x === playerData.val.rank)
-            });
-            response.message = "Added to queue";
+        if (playerData.val) {
+            if (!isInQueue) {
+                playersInQueue.push({
+                    discordName: playerData.discordName,
+                    discordid: playerData.discordid,
+                    ...playerData.val,
+                    rank: valorantConfig.ranks.findIndex(x => x === playerData.val.rank)
+                });
+                response.message = "Added to queue";
+            }
+            else {
+                response.error = true;
+                response.message = "Already in queue";
+            }
         }
         else {
             response.error = true;
-            response.message = "Already in queue";
+            response.message = "No player data set. Please use !val set";
         }
     }
     else {
