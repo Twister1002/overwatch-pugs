@@ -9,6 +9,9 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.2.5
+- Fixed issue with updating player data not adding ids and names
+
 ## Version 1.2.4
 - Fixed bug where valorant would attempt to make a match when not enough players are queued
 - Removed old file from tracking in the depot
