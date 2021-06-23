@@ -94,12 +94,12 @@ client.on("message", (message) => {
 
 function doUpdates() {
     // Version 1.1.1
-    const data = loadFile("overwatchpugs.json");
+    const oldData = loadFile("overwatchpugs.json");
 
-    if (hasOldData) {
+    if (oldData) {
         // If we have a record and the first record doesn't contain the player's ow or val data 
         // Create the update
-        data.forEach(x => {
+        oldData.forEach(x => {
             if (!x.ow) {
                 x.ow = {}
             }
