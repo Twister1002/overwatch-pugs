@@ -128,16 +128,31 @@ function getPlayerDataByDiscordTag(discordName) {
 
 function addPlayer(discordUser, game, data) {
     const allPlayerData = getAllPlayerData();
-    let playerData = allPlayerData.find(x => x.discordName === discordUser.tag) || {};
-    playerData.discordName = discordUser.tag;
-    playerData.discordid = discordUser.id;
+    let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
 
-    playerData[game] = {
-        ...playerData[game],
-        ...data
+    if (playerData) {
+        playerData.discordid = discordUser.id;
+
+        playerData[game] = {
+            ...playerData[game],
+            ...data
+        }
+
+        console.log(`Updating player ${playerData.discordName}`)
+    }
+    else {
+        playerData = {
+            discordName: discordUser.tag,
+            discordid: discordUser.id,
+            [game]: {
+                ...data
+            }
+        };
+        allPlayerData.push(playerData);
+
+        console.log(`Adding player ${playerData.discordName}`)
     }
 
-    console.log(`Saving player ${playerData.discordName} - (${playerData.discordid})`)
     return saveFile("playerdata.json", allPlayerData);
 }
 

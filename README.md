@@ -11,6 +11,7 @@
 
 ## Version 1.2.5
 - Fixed issue with updating player data not adding ids and names
+- Fixed bug with new users not being added to the player list.
 - Now deletes messaged by users when setting their data
 
 ## Version 1.2.4
