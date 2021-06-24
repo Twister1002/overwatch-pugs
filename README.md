@@ -9,6 +9,13 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.2.6
+- Updated text responding to the user
+- Added Info command to valorant users
+- Users are now allowed to remove themselves from queue even when queue isn't open (OW  only)
+- Added new command "Remove" to remove users from saved data
+ - Mod only command for now
+
 ## Version 1.2.5
 - Fixed issue with updating player data not adding ids and names
 - Fixed bug with new users not being added to the player list.

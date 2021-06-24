@@ -30,7 +30,8 @@ function overwatch(message, command, messageData) {
                 response = `BTag: ${playerData.ow.btag}; Tank: ${playerData.ow.tank}; DPS: ${playerData.ow.dps}; Support: ${playerData.ow.support}`;
             }
             else {
-                response = `No record exists for ${userTag}. Please set your info using '!pugs setInfo'`;
+                const setCommand = getCommand("val", "set");
+                response = `No record exists for ${userTag}. Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
             }
         }
             break;
@@ -60,7 +61,7 @@ function overwatch(message, command, messageData) {
                 response = `Saved as ${playerData.btag} Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
             }
             else {
-                console.log("Failed to save PUGs data");
+                console.log("Error in saving user data");
                 response = "Failed to save data";
             }
         }
@@ -97,14 +98,9 @@ function overwatch(message, command, messageData) {
             isReply = true;
             deleteMessage = true;
 
-            if (allowQueue) {
-                const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
-                playersInQueue = players;
-                response = `has been removed from queue`
-            }
-            else {
-                response = "PUGs does not currently have a queue. Please wait for a mod to start the queue"
-            }
+            const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
+            playersInQueue = players;
+            response = `has been removed from queue`;
         }
             break;
         case "lobby": {
@@ -194,11 +190,12 @@ function addPlayerToQueue(discordName, roles) {
             }
         }
         else {
-            response = "No overwatch data found. Please use !ow set";
+            const setCommand = getCommand("val", "set");
+            response = `No record exists for ${userTag}. Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
         }
     }
     else {
-        response = "The queue for PUGs is not open. Please wait for the queue to open."
+        response = "The queue for Overwatch is not currently not accepting new applications."
     }
 
     return response;

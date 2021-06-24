@@ -126,6 +126,12 @@
             "args": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
         },
         {
+            "name": "remove",
+            "isModcommand": true,
+            "help": "",
+            "args": ""
+        },
+        {
             "name": "q",
             "isModCommand": false,
             "help": "Queues you into the system for match making",

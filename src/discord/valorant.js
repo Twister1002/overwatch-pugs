@@ -1,4 +1,4 @@
-const { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer } = require("./utilities");
+const { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer, removePlayer, getCommand } = require("./utilities");
 const valorantConfig = require("../data/valorantconfig.json");
 const { MessageEmbed } = require("discord.js");
 
@@ -64,7 +64,16 @@ function valorant(message, command, messageData) {
         }
             break;
         case "info": {
+            let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
+            const playerData = getPlayerDataByDiscordTag(userTag)
 
+            if (playerData) {
+                response = `RiotTag: ${playerData.val.riotTag}; Rank: ${playerData.val.rank}`;
+            }
+            else {
+                const setCommand = getCommand("val", "set");
+                response = `No record exists for ${userTag}. Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+            }
         }
             break;
         case "users": {
@@ -90,6 +99,15 @@ function valorant(message, command, messageData) {
             else {
                 message.reply("Unable to save your info due to an error.");
             }
+        }
+            break;
+        case "remove": {
+            // if (removePlayer(message.author)) {
+            //     message.reply("You have been removed from our system");
+            // }
+            // else { 
+            //     message.reply("There was an error removing you from the system");
+            // }
         }
             break;
         case "startmatch": {
@@ -134,8 +152,9 @@ function addPlayerToQueue(discordUserTag) {
             }
         }
         else {
+            const setCommand = getCommand("val", "set");
+            response.message = `No record exists for ${userTag}. Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
             response.error = true;
-            response.message = "No player data set. Please use !val set";
         }
     }
     else {
