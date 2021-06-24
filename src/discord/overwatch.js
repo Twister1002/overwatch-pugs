@@ -22,16 +22,20 @@ function overwatch(message, command, messageData) {
 
     switch (command.name) {
         case "info": {
-            isReply = true;
             let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
             const playerData = getPlayerDataByDiscordTag(userTag)
 
-            if (playerData) {
+            if (playerData.ow) {
                 response = `BTag: ${playerData.ow.btag}; Tank: ${playerData.ow.tank}; DPS: ${playerData.ow.dps}; Support: ${playerData.ow.support}`;
             }
             else {
-                const setCommand = getCommand("val", "set");
-                response = `No record exists for ${userTag}. Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
+                response = `No record exists for ${userTag}.`;
+
+                if (message.author.tag === playerData.discordName) {
+                    isReply = true;
+                    const setCommand = getCommand("val", "set");
+                    response += ` Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
+                }
             }
         }
             break;
