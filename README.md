@@ -15,6 +15,9 @@
 - Users are now allowed to remove themselves from queue even when queue isn't open (OW  only)
 - Added new command "Remove" to remove users from saved data
  - Mod only command for now
+Command info
+ - Now only replies when the user lookup is the author
+ - Only adds the command info when user lookup is the author
 
 ## Version 1.2.5
 - Fixed issue with updating player data not adding ids and names
