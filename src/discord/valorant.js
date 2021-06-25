@@ -64,23 +64,33 @@ function valorant(message, command, messageData) {
         }
             break;
         case "info": {
+            let isReply = false;
             let response = "";
             let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
             const playerData = getPlayerDataByDiscordTag(userTag)
 
             if (playerData.val) {
+                if (message.author.tag === playerData.discordName) {
+                    isReply = true;
+                }
+
                 response = `RiotTag: ${playerData.val.riotTag}; Rank: ${playerData.val.rank}`;
             }
             else {
                 response = `No record exists for ${userTag}.`;
-
                 if (message.author.tag === playerData.discordName) {
+                    isReply = true;
                     const setCommand = getCommand("val", "set");
                     response += ` Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
                 }
             }
 
-            message.channel.send(response);
+            if (isReply) {
+                message.reply(response);
+            }
+            else {
+                message.channel.send(response);
+            }
         }
             break;
         case "users": {

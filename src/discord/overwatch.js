@@ -26,6 +26,10 @@ function overwatch(message, command, messageData) {
             const playerData = getPlayerDataByDiscordTag(userTag)
 
             if (playerData.ow) {
+                if (message.author.tag === playerData.discordName) {
+                    isReply = true;
+                }
+                
                 response = `BTag: ${playerData.ow.btag}; Tank: ${playerData.ow.tank}; DPS: ${playerData.ow.dps}; Support: ${playerData.ow.support}`;
             }
             else {
