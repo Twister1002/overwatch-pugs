@@ -101,8 +101,8 @@ function valorant(message, command, messageData) {
         }
             break;
         case "set": {
-            const riotTag = messageData.shift();
-            const rank = messageData.shift().toLowerCase();
+            const riotTag = messageData.shift().replace(/[<>]/g, "");
+            const rank = messageData.shift().toLowerCase().replace(/[<>]/g, "");
 
             const result = addPlayer(message.author, "val", {
                 riotTag,

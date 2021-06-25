@@ -29,8 +29,11 @@ function overwatch(message, command, messageData) {
                 if (message.author.tag === playerData.discordName) {
                     isReply = true;
                 }
-                
-                response = `BTag: ${playerData.ow.btag}; Tank: ${playerData.ow.tank}; DPS: ${playerData.ow.dps}; Support: ${playerData.ow.support}`;
+
+                response = `BTag: ${playerData.ow.btag};`;
+                response +=  playerData.ow.tank ? ` Tank: ${playerData.ow.tank};` : ``;
+                response +=  playerData.ow.dps ? ` DPS: ${playerData.ow.dps};` : ``;
+                response +=  playerData.ow.support ? ` Support: ${playerData.ow.support}` : ``;
             }
             else {
                 response = `No record exists for ${userTag}.`;
@@ -53,7 +56,7 @@ function overwatch(message, command, messageData) {
             const dpsIndex = messageData.findIndex(p => p.toLowerCase().includes("dps"));
             const tankIndex = messageData.findIndex(p => p.toLowerCase().includes("tank"));
 
-            const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1] : null;
+            const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1].replace(/[<>]/g, "") : null;
             const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : undefined;
             const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
             const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
@@ -66,7 +69,11 @@ function overwatch(message, command, messageData) {
 
             if (isSaved) {
                 const playerData = getPlayerDataByDiscordTag(message.author.tag).ow;
-                response = `Saved as ${playerData.btag} Tank: ${playerData.tank}; DPS: ${playerData.dps}; Support: ${playerData.support}`;
+                
+                response =  playerData.btag ? `Battle Tag: ${playerData.btag};` : ``;
+                response +=  playerData.tank ? ` Tank: ${playerData.tank};` : ``;
+                response +=  playerData.dps ? ` DPS: ${playerData.dps};` : ``;
+                response +=  playerData.support ? ` Support: ${playerData.support}` : ``;
             }
             else {
                 console.log("Error in saving user data");
