@@ -9,6 +9,9 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.2.7
+- Valorant ranks are now saved as numbers instead of its string
+
 ## Version 1.2.6
 - Updated text responding to the user
 - Added Info command to valorant users
@@ -19,7 +22,6 @@
 Command info
  - Now only replies when the user lookup is the author
  - Only adds the command info when user lookup is the author
-
 
 ## Version 1.2.5
 - Fixed issue with updating player data not adding ids and names

@@ -74,7 +74,7 @@ function valorant(message, command, messageData) {
                     isReply = true;
                 }
 
-                response = `RiotTag: ${playerData.val.riotTag}; Rank: ${playerData.val.rank}`;
+                response = `RiotTag: ${playerData.val.riotTag}; Rank: ${getRankName(playerData.val.rank)}`;
             }
             else {
                 response = `No record exists for ${userTag}.`;
@@ -102,7 +102,8 @@ function valorant(message, command, messageData) {
             break;
         case "set": {
             const riotTag = messageData.shift().replace(/[<>]/g, "");
-            const rank = messageData.shift().toLowerCase().replace(/[<>]/g, "");
+            let rank = messageData.shift();
+            rank = valorantConfig.ranks.findIndex(r => r === rank.toLowerCase().replace(/[<>]/g, ""));
 
             const result = addPlayer(message.author, "val", {
                 riotTag,
@@ -111,7 +112,7 @@ function valorant(message, command, messageData) {
 
             if (result) {
                 message.delete().catch(e => console.log(e));
-                message.reply(`your info has been saved: ${riotTag} at rank ${rank}`);
+                message.reply(`your info has been saved: ${riotTag} at rank ${getRankName(rank)}`);
             }
             else {
                 message.reply("Unable to save your info due to an error.");
@@ -159,7 +160,7 @@ function addPlayerToQueue(discordUserTag) {
                     discordName: playerData.discordName,
                     discordid: playerData.discordid,
                     ...playerData.val,
-                    rank: valorantConfig.ranks.findIndex(x => x === playerData.val.rank)
+                    rank: playerData.val.rank
                 });
                 response.message = "Added to queue";
             }
@@ -211,7 +212,7 @@ function createMatch(message) {
                     return Math.floor(this.teamRank / this.players.length)
                 },
                 avgRankName: function () {
-                    return valorantConfig.ranks[Math.floor(this.teamRank / this.players.length)]
+                    return getRankName(Math.floor(this.teamRank / this.players.length))
                 }
             })
         }
@@ -254,13 +255,17 @@ function createMatch(message) {
 
         matchInfo.teams.forEach(team => {
             embeddedMessage.addField(`${team.name} - ${team.avgRankName()}`, team.players.map(p => {
-                const discord = p.discordid ? `<@${p.discordid}>` : p.discordName;
-                return `${discord}\n${p.riotTag}\n${valorantConfig.ranks[p.rank]}`
+                const discord = false ? `<@${p.discordid}>` : p.discordName;
+                return `${discord}\n${p.riotTag}\n${getRankName(p.rank)}\n`
             }).join("\n") || "None", true);
         })
     
         message.channel.send({ embed: embeddedMessage });
     }
+}
+
+function getRankName(rank) {
+    return valorantConfig.ranks[rank];
 }
 
 module.exports = valorant;
