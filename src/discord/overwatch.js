@@ -60,7 +60,8 @@ function overwatch(message, command, messageData) {
             const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
             const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
 
-            const dataToSave = {btag: bTagInfo}
+            const dataToSave = {}
+            if (bTagInfo) { dataToSave.btag = bTagInfo; }
             if (tankRank) { dataToSave.tank = tankRank; }
             if (supportRank) { dataToSave.support = supportRank; }
             if (dpsRank) { dataToSave.dps = dpsRank; }
