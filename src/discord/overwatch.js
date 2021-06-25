@@ -9,7 +9,6 @@ const {
     addPlayer 
 } = require("./utilities");
 const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
-const allowedRoles = require("../data/roles.json");
 const overwatchConfig = require("../data/overwatchconfig.json");
 
 let allowQueue = false;
@@ -141,11 +140,26 @@ function overwatch(message, command, messageData) {
             const testPlayerData = getAllPlayerData().filter(x => x.ow);
 
             allowQueue = true;
-            for (let i = 0; i < testPlayerData.length; i++) {
-                const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
+            // for (let i = 0; i < testPlayerData.length; i++) {
+            //     const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
                 
-                addPlayerToQueue(player.discordName, ["all"]);
-            }
+            //     addPlayerToQueue(player.discordName, ["all"]);
+            // }
+
+            // Test case for invalid match and could not be created.
+            addPlayerToQueue("Jesus Christ#1216", ["tank", "dps"]);
+            addPlayerToQueue("Skateking-#7517", ["dps"]);
+            addPlayerToQueue("Sparlin#3892", ["all"]);
+            addPlayerToQueue("Arkonon#5896", ["all"]);
+            addPlayerToQueue("Edant#3834", ["support"]);
+            addPlayerToQueue("Sen#4444", ["dps", "tank"]);
+            addPlayerToQueue("Flowingfiber#8311", ["dps","support"]);
+            addPlayerToQueue("Sirloin77#4166", ["all"]);
+            addPlayerToQueue("Rain#0006", ["all"]);
+            addPlayerToQueue("!Spoodini#9821", ["dps"]);
+            addPlayerToQueue("Slim_and_Shady#5291", ["tank","dps"]);
+            addPlayerToQueue("Nanybanany#3765", ["support"]);
+            
             allowQueue = false;
 
             response = createMatch(message.channel);
@@ -180,7 +194,7 @@ function overwatch(message, command, messageData) {
 function addPlayerToQueue(discordName, roles) {
     let response = "";
     const player = getPlayerDataByDiscordTag(discordName);
-    const wantedRoles = roles.includes("all") ? [...allowedRoles] : roles;
+    const wantedRoles = roles.includes("all") ? overwatchConfig.roles.map(x => x.name) : roles;
     const filteredRoles = wantedRoles.filter(r => player.ow[r.toLowerCase()] >= 500).map(r => r.toLowerCase());
 
     if (allowQueue) {

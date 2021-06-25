@@ -124,5 +124,5 @@ function loginBot() {
     }, loginAttempts === 0 ? 0 : loginWaitInterval)
 }
 
-doUpdates();
+// doUpdates();
 loginBot();

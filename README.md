@@ -11,6 +11,8 @@
 
 ## Version 1.2.7
 - Valorant ranks are now saved as numbers instead of its string
+- Removed "Roles" file and now using overwatch configuration data instead
+- Added test case where matches could not be created.
 
 ## Version 1.2.6
 - Updated text responding to the user
