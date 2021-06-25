@@ -137,7 +137,7 @@ function overwatch(message, command, messageData) {
         }
             break;
         case "testmatch": {
-            const testPlayerData = getAllPlayerData().filter(x => x.ow);
+            // const testPlayerData = getAllPlayerData().filter(x => x.ow);
 
             allowQueue = true;
             // for (let i = 0; i < testPlayerData.length; i++) {
