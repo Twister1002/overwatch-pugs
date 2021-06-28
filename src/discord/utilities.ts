@@ -1,16 +1,16 @@
-const fs = require("fs");
-const path = require("path");
-const commands = require("../data/commands.json");
-const modPermissions = require("../data/permissions.json");
+import fs from "fs";
+import path from "path";
+import commands from "../data/commands.json";
+import modPermissions from "../data/permissions.json";
 
 //The maximum is exclusive and the minimum is inclusive
-function getRandomInt(min, max) {
+export function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); 
 }
 
-function parseToNumber(data) {
+export function parseToNumber(data) {
     const regex = new RegExp(/[0-9]/g);
     const stringMatch = data.match(regex) ? data.match(regex).join("") : 0;
     const SRValue = Number(stringMatch)
@@ -18,7 +18,7 @@ function parseToNumber(data) {
     return SRValue;
 }
 
-function getSRTier(sr) {
+export function getSRTier(sr) {
     if (sr < 1500) {
         // Bronze
         return "B";
@@ -48,7 +48,7 @@ function getSRTier(sr) {
     }
 }
 
-async function findUserInGuild(guild, discordUserId) {
+export async function findUserInGuild(guild, discordUserId) {
     let user = undefined;
 
     if (!Number.isNaN(discordUserId) && discordUserId) {
@@ -63,9 +63,9 @@ async function findUserInGuild(guild, discordUserId) {
     return user;
 }
 
-function loadFile(fileName) {
+export function loadFile(fileName) {
     const filePath = path.join(__dirname, "../", "data", fileName);
-    let fileData = null;
+    let fileData;
 
     if (fs.existsSync(filePath)) {
         fileData = fs.readFileSync(filePath);
@@ -79,7 +79,7 @@ function loadFile(fileName) {
     return fileData;
 }
 
-function saveFile(fileName, data) {
+export function saveFile(fileName, data) {
     const filePath = path.join(__dirname, "../", "data", fileName);
 
     try {
@@ -92,7 +92,7 @@ function saveFile(fileName, data) {
     }
 }
 
-function getCommands(main) {
+export function getCommands(main) {
     if (commands[main]) {
         return commands[main];
     }
@@ -101,7 +101,7 @@ function getCommands(main) {
     }
 }
 
-function getCommand(main, sub) {
+export function getCommand(main, sub) {
     const mainCommands = getCommands(main);
 
     if (mainCommands.length > 0) {
@@ -112,21 +112,21 @@ function getCommand(main, sub) {
     }
 }
 
-function isUserMod(discordUser) {
+export function isUserMod(discordUser) {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
 }
 
-function getAllPlayerData() {
+export function getAllPlayerData() {
     const pugData = loadFile("playerdata.json");
 
     return pugData;
 }
 
-function getPlayerDataByDiscordTag(discordName) {
+export function getPlayerDataByDiscordTag(discordName) {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
-function addPlayer(discordUser, game, data) {
+export function addPlayer(discordUser, game, data) {
     const allPlayerData = getAllPlayerData();
     let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
 
@@ -156,24 +156,8 @@ function addPlayer(discordUser, game, data) {
     return saveFile("playerdata.json", allPlayerData);
 }
 
-function removePlayer(discordUser) {
+export function removePlayer(discordUser) {
     const allPlayerData = getAllPlayerData().filter(x => x.discordName !== discordUser.tag);
 
     return saveFile("playerdata.json", allPlayerData);
-}
-
-module.exports = {
-    getRandomInt,
-    parseToNumber,
-    getSRTier,
-    findUserInGuild,
-    saveFile,
-    loadFile,
-    getCommands,
-    getCommand,
-    isUserMod,
-    getAllPlayerData,
-    getPlayerDataByDiscordTag,
-    addPlayer,
-    removePlayer
 }

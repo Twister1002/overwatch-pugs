@@ -1,9 +1,9 @@
 require("dotenv").config();
+import overwatch from "./overwatch";
+import valorant from "./valorant";
+import { getCommands, getCommand, isUserMod, loadFile, saveFile, getAllPlayerData } from "./utilities";
+import { Client } from "discord.js";
 const isDev = process.env.NODE_ENV === "development";
-const overwatch = require("./overwatch");
-const valorant = require("./valorant");
-const { getCommands, getCommand, isUserMod, loadFile, saveFile, getAllPlayerData } = require("./utilities");
-const { Client } = require("discord.js");
 const client = new Client();
 const botID = ["309700308697743362", "309700551799734274"]
 
@@ -12,8 +12,8 @@ let loginWaitInterval = 10 * 1000;
 const availableMainCommands = ["!ow", "!val"];
 
 client.on("ready", () => {
-    console.log(`Bot has logged in ${client.user.tag}`)
-    client.user.setActivity('!pugs', { type: 'LISTENING'})
+    console.log(`Bot has logged in ${client.user?.tag}`)
+    client.user?.setActivity('!pugs', { type: 'LISTENING'})
 })
 
 client.on("message", (message) => {
@@ -23,13 +23,13 @@ client.on("message", (message) => {
     
     try {
         const messageData = message.content.split(" ");
-        const mainCommand = messageData.shift().toLowerCase();
+        const mainCommand = messageData.shift()?.toLowerCase() || "";
 
         if (!availableMainCommands.includes(mainCommand) || messageData.length < 1) {
             return;
         }
 
-        const subCommand = messageData.shift().toLowerCase();
+        const subCommand = messageData.shift()?.toLowerCase();
         const command = getCommand(mainCommand.substr(1), subCommand);
         const globalCommand = getCommand("global", subCommand);
         const isMod = isUserMod(message.member);

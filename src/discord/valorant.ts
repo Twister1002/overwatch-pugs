@@ -1,11 +1,11 @@
-const { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer, removePlayer, getCommand } = require("./utilities");
-const valorantConfig = require("../data/valorantconfig.json");
-const { MessageEmbed } = require("discord.js");
+import { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer, removePlayer, getCommand } from "./utilities";
+import valorantConfig from "../data/valorantconfig.json";
+import { MessageEmbed } from "discord.js";
 
-let playersInQueue = [];
+let playersInQueue: Array<{}> = [];
 let canQueue = false;
 
-function valorant(message, command, messageData) {
+export default function valorant(message, command, messageData) {
     switch (command.name) {
         case "startq": {
             canQueue = true;
@@ -171,7 +171,7 @@ function addPlayerToQueue(discordUserTag) {
         }
         else {
             const setCommand = getCommand("val", "set");
-            response.message = `No record exists for ${userTag}. Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+            response.message = `No record exists for ${discordUserTag}. Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
             response.error = true;
         }
     }
@@ -185,7 +185,7 @@ function addPlayerToQueue(discordUserTag) {
 
 function createMatch(message) {
     let attemptedMatches = 0;
-    const matchInfo = {
+    const matchInfo: any = {
         teams: [],
         map: valorantConfig.maps[getRandomInt(0, valorantConfig.maps.length)],
         response: "",
@@ -201,7 +201,7 @@ function createMatch(message) {
 
     while (attemptedMatches < 5000) {
         attemptedMatches++;
-        let queuedPlayers = [...playersInQueue];
+        let queuedPlayers: Array<{}> = [...playersInQueue];
 
         while (matchInfo.teams.length < valorantConfig.maxTeams) {
             matchInfo.teams.push({
@@ -222,7 +222,7 @@ function createMatch(message) {
 
             if (teamsNeedPlayers.length > 0 && queuedPlayers.length > 0) {
                 const team = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
-                const player = queuedPlayers[getRandomInt(0, queuedPlayers.length)];
+                const player: {[k: string]: any} = queuedPlayers[getRandomInt(0, queuedPlayers.length)];
                 queuedPlayers = queuedPlayers.filter(x => x !== player);
 
                 team.players.push(player);
@@ -254,7 +254,7 @@ function createMatch(message) {
         .addField("\u200B", "\u200B", false);
 
         matchInfo.teams.forEach(team => {
-            embeddedMessage.addField(`${team.name} - ${team.avgRankName()}`, team.players.map(p => {
+            embeddedMessage.addField(`${team.name}}`, team.players.map(p => {
                 const discord = false ? `<@${p.discordid}>` : p.discordName;
                 return `${discord}\n${p.riotTag}\n${getRankName(p.rank)}\n`
             }).join("\n") || "None", true);

@@ -1,5 +1,5 @@
-const { MessageEmbed } = require("discord.js");
-const { 
+import { MessageEmbed } from "discord.js";
+import { 
     parseToNumber,
     getSRTier,
     getRandomInt,
@@ -7,14 +7,15 @@ const {
     getPlayerDataByDiscordTag,
     getAllPlayerData,
     addPlayer 
-} = require("./utilities");
-const { createOverWatchMatch, setMatchConfig, getMatchConfig } = require("./match");
-const overwatchConfig = require("../data/overwatchconfig.json");
+} from "./utilities";
+import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
+import overwatchConfig from "../data/overwatchconfig.json";
+import { Overwatch } from "../@types/Overwatch";
 
 let allowQueue = false;
-let playersInQueue = [];
+let playersInQueue: Array<{[k: string]: any}> = [];
 
-function overwatch(message, command, messageData) {
+export default function overwatch(message, command, messageData) {
     let response = "";
     let isReply = false;
     let deleteMessage = false;
@@ -60,7 +61,7 @@ function overwatch(message, command, messageData) {
             const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
             const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
 
-            const dataToSave = {}
+            const dataToSave: {[k: string]: any} = {}
             if (bTagInfo) { dataToSave.btag = bTagInfo; }
             if (tankRank) { dataToSave.tank = tankRank; }
             if (supportRank) { dataToSave.support = supportRank; }
@@ -221,7 +222,7 @@ function addPlayerToQueue(discordName, roles) {
         }
         else {
             const setCommand = getCommand("val", "set");
-            response = `No record exists for ${userTag}. Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
+            response = `No record exists for ${discordName}. Please set your info using '!ow ${setCommand.name} ${setCommand.args}'`;
         }
     }
     else {
@@ -235,7 +236,7 @@ function createMatch(channel) {
     let response = "";
 
     if (!allowQueue) {
-        const playerList = []
+        const playerList: Array<{[k: string]: any}> = []
 
         // Put all players in a list with all of their data
         playersInQueue.forEach(p => {
@@ -249,14 +250,14 @@ function createMatch(channel) {
         })
 
         // Place users in the match
-        let matchesCreated = 0;
-        let matchDetails = null;
+        let matchesCreated: number = 0;
+        let matchDetails: Overwatch.Match | null = null;
 
         while ((matchDetails === null || matchDetails.hasError) && matchesCreated < 5000) {
             matchesCreated++;
             matchDetails = createOverWatchMatch(playerList);
 
-            if (matchDetails.hasFatalError) {
+            if (matchDetails?.hasFatalError) {
                 break;
             }
         }
@@ -264,7 +265,7 @@ function createMatch(channel) {
         if (matchesCreated >= 5000) {
             response = `Unable to create a suitable match within ${matchesCreated} tries. Please restart queue.`
         }
-        else if (matchDetails.hasError || matchDetails.hasFatalError) {
+        else if (matchDetails !== null && (matchDetails.hasError || matchDetails.hasFatalError)) {
             if (matchDetails.hasError) {
                 console.log(matchDetails.responseMessage);
 
@@ -277,14 +278,14 @@ function createMatch(channel) {
             const embeddedMessage = new MessageEmbed()
                 .setColor("#0099ff")
                 .setTitle("Overwatch Match")
-                .setDescription(`Map: ${matchDetails.map}`)
+                .setDescription(`Map: ${matchDetails?.map}`)
 
-            matchDetails.teams.forEach((team) => {
+            matchDetails?.teams.forEach((team) => {
                 embeddedMessage.addField("\u200B", "\u200B", false)
                 embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
-                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow.btag}\n${x.ow.tank} - ${getSRTier(x.ow.tank)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow.btag}\n${x.ow.dps} - ${getSRTier(x.ow.dps)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow.btag}\n${x.ow.support} - ${getSRTier(x.ow.support)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support)}\n`).join("\n") || "None", true)
             })
 
             console.log(`Created match after ${matchesCreated} attempts`)
