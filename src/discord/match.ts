@@ -2,7 +2,7 @@ import { getRandomInt } from "./utilities";
 import originalConfig from "../data/overwatchconfig.json";
 let config = originalConfig;
 
-export function createOverWatchMatch(queuedPlayers) { 
+export function createOverWatchMatch(queuedPlayers: Array<Player>) { 
     const matchData: OverwatchMatch = {
         teams: [],
         map: "",

@@ -33,18 +33,3 @@ type OverwatchTeam = {
     addPlayerToTeam: (player: Player, role: OverwatchRole) => void
     neededRoles: () => Array<OverwatchRole>
 }
-
-type Player = {
-    discordName: string,
-    discordid: string,
-    ow?: {
-        btag: string,
-        support?: number,
-        tank?: number,
-        dps?: number
-    }
-    val?: {
-        riotTag: string,
-        rank: number
-    }
-}

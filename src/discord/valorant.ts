@@ -1,11 +1,12 @@
 import { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer, removePlayer, getCommand } from "./utilities";
 import valorantConfig from "../data/valorantconfig.json";
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed, User } from "discord.js";
 
-let playersInQueue: Array<{}> = [];
+let playersInQueue: Array<Player> = [];
 let canQueue = false;
+const config: ValorantConfig = valorantConfig;
 
-export default function valorant(message, command, messageData) {
+export default function valorant(message: Message, command: Command, messageData: Array<string>) {
     switch (command.name) {
         case "startq": {
             canQueue = true;
@@ -58,7 +59,7 @@ export default function valorant(message, command, messageData) {
         }
             break;
         case "maps": {
-            const maps = valorantConfig.maps;
+            const maps = config.maps;
 
             message.channel.send(`Available Maps ${maps.length}\n${maps.map(x => `- ${x}`).join("\n")}`)
         }
@@ -66,22 +67,26 @@ export default function valorant(message, command, messageData) {
         case "info": {
             let isReply = false;
             let response = "";
-            let userTag = message.mentions.users.first() ? message.mentions.users.first().tag : message.author.tag;
-            const playerData = getPlayerDataByDiscordTag(userTag)
+            const user: User = message.mentions.users.first() || message.author;
+            const playerData = getPlayerDataByDiscordTag(user.tag);
 
-            if (playerData.val) {
-                if (message.author.tag === playerData.discordName) {
+            if (playerData?.val) {
+                if (user.tag === playerData.discordName) {
                     isReply = true;
                 }
 
                 response = `RiotTag: ${playerData.val.riotTag}; Rank: ${getRankName(playerData.val.rank)}`;
             }
             else {
-                response = `No record exists for ${userTag}.`;
-                if (message.author.tag === playerData.discordName) {
+                response = `No record exists for ${user.tag}.`;
+
+                if (user.tag === playerData?.discordName) {
                     isReply = true;
                     const setCommand = getCommand("val", "set");
-                    response += ` Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+
+                    if (setCommand) {
+                        response += ` Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+                    }
                 }
             }
 
@@ -95,15 +100,15 @@ export default function valorant(message, command, messageData) {
             break;
         case "users": {
             const players = getAllPlayerData().filter(x => x.val);
-            let response = `Users registered for Valorant: ${players.length}\n${players.map(x => `- ${x.discordName} (${x.val.riotTag})`).join("\n")}`;
+            let response = `Users registered for Valorant: ${players.length}\n${players.map(x => `- ${x.discordName} (${x.val?.riotTag})`).join("\n")}`;
 
             message.channel.send(response);
         }
             break;
         case "set": {
-            const riotTag = messageData.shift().replace(/[<>]/g, "");
-            let rank = messageData.shift();
-            rank = valorantConfig.ranks.findIndex(r => r === rank.toLowerCase().replace(/[<>]/g, ""));
+            const riotTag: string | undefined = messageData.shift()?.replace(/[<>]/g, "") || "";
+            const rankString: string | undefined = messageData.shift();
+            let rank: number = config.ranks.findIndex(r => r === rankString?.toLowerCase().replace(/[<>]/g, "")) || -1;
 
             const result = addPlayer(message.author, "val", {
                 riotTag,
@@ -144,17 +149,18 @@ export default function valorant(message, command, messageData) {
     }
 }
 
-function addPlayerToQueue(discordUserTag) {
+function addPlayerToQueue(discordTag: string): {message: string, error: boolean} {
     const response = {
         error: false,
         message: ""
     };
 
     if (canQueue) {
-        const playerData = getPlayerDataByDiscordTag(discordUserTag);
-        const isInQueue = playersInQueue.some(x => x === playerData.discordName);
+        const playerData: Player | undefined = getPlayerDataByDiscordTag(discordTag);
 
-        if (playerData.val) {
+        if (playerData && playerData.val) {
+            const isInQueue = playersInQueue.some(x => x === playerData.discordName);
+
             if (!isInQueue) {
                 playersInQueue.push({
                     discordName: playerData.discordName,
@@ -171,7 +177,7 @@ function addPlayerToQueue(discordUserTag) {
         }
         else {
             const setCommand = getCommand("val", "set");
-            response.message = `No record exists for ${discordUserTag}. Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+            response.message = `No record exists for ${discordTag}. Please set your info using '!val ${setCommand?.name} ${setCommand?.args}'`;
             response.error = true;
         }
     }
@@ -183,50 +189,50 @@ function addPlayerToQueue(discordUserTag) {
     return response;
 }
 
-function createMatch(message) {
+function createMatch(message: Message): void {
     let attemptedMatches = 0;
-    const matchInfo: any = {
+    const matchInfo: ValorantMatch = {
         teams: [],
-        map: valorantConfig.maps[getRandomInt(0, valorantConfig.maps.length)],
+        map: config.maps[getRandomInt(0, config.maps.length)],
         response: "",
         hasError: false,
         hasFatalError: false
     }
 
     // Do we have enough players in order to make the match?
-    if (playersInQueue.length < (valorantConfig.maxTeams * valorantConfig.maxPlayersPerTeam)) {
+    if (playersInQueue.length < (config.maxTeams * config.maxPlayersPerTeam)) {
         message.channel.send("There are not enough players to make a match.");
         return;
     }
 
     while (attemptedMatches < 5000) {
         attemptedMatches++;
-        let queuedPlayers: Array<{}> = [...playersInQueue];
+        let queuedPlayers: Array<Player> = [...playersInQueue];
 
-        while (matchInfo.teams.length < valorantConfig.maxTeams) {
+        while (matchInfo.teams.length < config.maxTeams) {
             matchInfo.teams.push({
-                name: valorantConfig.teamNames[matchInfo.teams.length],
+                name: config.teamNames[matchInfo.teams.length],
                 players: [],
                 teamRank: 0,
                 avgRank: function() {
                     return Math.floor(this.teamRank / this.players.length)
                 },
-                avgRankName: function () {
+                avgRankName: function (): ValorantRank {
                     return getRankName(Math.floor(this.teamRank / this.players.length))
                 }
             })
         }
 
-        for (let i = 0; i < (valorantConfig.maxPlayersPerTeam * valorantConfig.maxTeams); i++) {
-            const teamsNeedPlayers = matchInfo.teams.filter(team => team.players.length < valorantConfig.maxPlayersPerTeam);
+        for (let i = 0; i < (config.maxPlayersPerTeam * config.maxTeams); i++) {
+            const teamsNeedPlayers = matchInfo.teams.filter(team => team.players.length < config.maxPlayersPerTeam);
 
             if (teamsNeedPlayers.length > 0 && queuedPlayers.length > 0) {
                 const team = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)];
-                const player: {[k: string]: any} = queuedPlayers[getRandomInt(0, queuedPlayers.length)];
+                const player: Player = queuedPlayers[getRandomInt(0, queuedPlayers.length)];
                 queuedPlayers = queuedPlayers.filter(x => x !== player);
 
                 team.players.push(player);
-                team.teamRank += player.rank;
+                team.teamRank += player.val.rank;
             }
             else {
                 break;
@@ -236,7 +242,7 @@ function createMatch(message) {
         const allTeamRanks = matchInfo.teams.map(x => x.teamRank);
         const rankDiff = Math.max(...allTeamRanks) - Math.min(...allTeamRanks);
 
-        if (rankDiff < valorantConfig.maxTierDiff && rankDiff > -valorantConfig.maxTierDiff) {
+        if (rankDiff < config.maxTierDiff && rankDiff > -config.maxTierDiff) {
             break;
         }
     }
@@ -256,7 +262,7 @@ function createMatch(message) {
         matchInfo.teams.forEach(team => {
             embeddedMessage.addField(`${team.name}}`, team.players.map(p => {
                 const discord = false ? `<@${p.discordid}>` : p.discordName;
-                return `${discord}\n${p.riotTag}\n${getRankName(p.rank)}\n`
+                return `${discord}\n${p.val.riotTag}\n${getRankName(p.val.rank)}\n`
             }).join("\n") || "None", true);
         })
     
@@ -264,8 +270,8 @@ function createMatch(message) {
     }
 }
 
-function getRankName(rank) {
-    return valorantConfig.ranks[rank];
+function getRankName(rank: number): ValorantRank {
+    return config.ranks[rank] as ValorantRank;
 }
 
 module.exports = valorant;

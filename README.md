@@ -9,6 +9,11 @@
 ## Bugs:
 - Fix parsing issue with setting players info
 
+## Version 1.3.1
+ - Added custom types
+ - Removed unused React stuff
+  - If a website is developed, it'll be added back in
+
 ## Version 1.3.0
 - Implemented TypeScript
 

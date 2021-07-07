@@ -4,8 +4,7 @@
   "private": true,
   "dependencies": {
     "discord.js": "^12.5.3",
-    "dotenv": "^9.0.2",
-    "web-vitals": "^1.1.1"
+    "dotenv": "^9.0.2"
   },
   "devDependencies": {
     "@types/react": "17.0.3",

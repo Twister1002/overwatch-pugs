@@ -1,3 +1,4 @@
+import { User } from "discord.js";
 import fs from "fs";
 import path from "path";
 import commands from "../data/commands.json";
@@ -129,7 +130,7 @@ export function getPlayerDataByDiscordTag(discordName): Player | undefined {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
-export function addPlayer(discordUser, game: string, data: object): boolean {
+export function addPlayer(discordUser: User, game: string, data: OverwatchPlayerData | ValorantPlayerData): boolean {
     const allPlayerData = getAllPlayerData();
     let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
 
@@ -159,7 +160,10 @@ export function addPlayer(discordUser, game: string, data: object): boolean {
     return saveFile("playerdata.json", allPlayerData);
 }
 
-export function removePlayer(discordUser) {
+export function removePlayer(discordUser: User): boolean {
+    // Check by discord ID
+
+    // Check by tag name
     const allPlayerData = getAllPlayerData().filter(x => x.discordName !== discordUser.tag);
 
     return saveFile("playerdata.json", allPlayerData);
