@@ -16,6 +16,6 @@ type ValorantPlayerData = {
 }
 
 type Player = DiscordUser & {
-    ow?: Overwatch,
-    val?: Valorant
+    ow?: OverwatchPlayerData,
+    val?: ValorantPlayerData
 }

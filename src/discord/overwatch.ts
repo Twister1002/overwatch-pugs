@@ -143,7 +143,7 @@ export default function overwatch(message: Message, command: Command, messageDat
         case "users": {
             // Display all user's data
             const owPlayers = getAllPlayerData().filter(x => x.ow);
-            response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow.btag})`).join("\n")}`;
+            response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow?.btag})`).join("\n")}`;
         }
             break;
         case "testmatch": {
@@ -217,7 +217,12 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
     if (allowQueue) {
         if (player && player.ow) {
             const wantedRoles: Array<OverwatchRole> = roles.includes("all") ? overwatchConfig.roles.map<OverwatchRole>(x => x.name as OverwatchRole) : roles;
-            const filteredRoles: Array<OverwatchRole> = wantedRoles.filter(r => player.ow[r.toLowerCase()] >= 500).map(r => r.toLowerCase()) as Array<OverwatchRole>;
+            const filteredRoles: Array<OverwatchRole> = wantedRoles.filter(r => {
+                if (player.ow) {
+                    return player.ow[r.toLowerCase()] >= 500
+                }
+            })
+            .map(r => r.toLowerCase()) as Array<OverwatchRole>;
 
             if (roles.length > 0) {
                 if (filteredRoles.length > 0) {
@@ -231,7 +236,7 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
                     response = `is queued for ${filteredRoles.join(", ")}.`
                 }
                 else {
-                    response = `You can not queue for with invalid SR. ${filteredRoles.map(r => `${r} (${player.ow[r]})`).join(" ")}`
+                    response = `You may not attempt to queue with no ranks in range.`
                 }
             }
             else {
@@ -302,9 +307,9 @@ function createMatch(channel) {
             matchDetails?.teams.forEach((team) => {
                 embeddedMessage.addField("\u200B", "\u200B", false)
                 embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
-                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank as number)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps as number)}\n`).join("\n") || "None", true)
+                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support as number)}\n`).join("\n") || "None", true)
             })
 
             console.log(`Created match after ${matchesCreated} attempts`)
