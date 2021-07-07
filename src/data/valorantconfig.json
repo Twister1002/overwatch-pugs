@@ -1,0 +1,24 @@
+{
+    "maxTeams": 2,
+    "maxPlayersPerTeam": 5,
+    "teamNames": ["Attackers", "Defenders"],
+    "maxTierDiff": 3,
+    "maps": [
+        "Breeze",
+        "Icebox", 
+        "Bind",
+        "Haven",
+        "Split",
+        "Ascent"
+    ],
+    "ranks": [
+        "iron",
+        "bronze",
+        "silver",
+        "gold",
+        "plat",
+        "diamond", 
+        "immortal",
+        "radiant"
+    ]
+}
