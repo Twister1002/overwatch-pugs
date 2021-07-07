@@ -105,7 +105,7 @@ export function getCommands(main: string): Array<Command> {
     }
 }
 
-export function getCommand(main: string, sub: string): Command | undefined {
+export function getCommand(main: string, sub?: string): Command | undefined {
     const mainCommands = getCommands(main);
     let command: Command | undefined; 
 
@@ -116,7 +116,7 @@ export function getCommand(main: string, sub: string): Command | undefined {
     return command;
 }
 
-export function isUserMod(discordUser) {
+export function isUserMod(discordUser): boolean {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
 }
 
