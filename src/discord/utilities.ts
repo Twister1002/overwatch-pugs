@@ -4,66 +4,69 @@ import commands from "../data/commands.json";
 import modPermissions from "../data/permissions.json";
 
 //The maximum is exclusive and the minimum is inclusive
-export function getRandomInt(min, max) {
+export function getRandomInt(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); 
 }
 
-export function parseToNumber(data) {
+export function parseToNumber(data: string): number {
     const regex = new RegExp(/[0-9]/g);
-    const stringMatch = data.match(regex) ? data.match(regex).join("") : 0;
+    const stringMatch = data.match(regex) ? data.match(regex)?.join("") ?? 0 : 0;
     const SRValue = Number(stringMatch)
 
     return SRValue;
 }
 
-export function getSRTier(sr) {
+export function getSRTier(sr: number): OverwatchTier {
+    let tier: OverwatchTier;
     if (sr < 1500) {
         // Bronze
-        return "B";
+        tier = "B";
     }
     else if (sr >= 1500 && sr < 2000) {
         // Silver
-        return "S";
+        tier = "S";
     }
     else if (sr >= 2000 && sr < 2500) {
         // Gold
-        return "G";
+        tier = "G";
     }
     else if (sr >= 2500 && sr < 3000) {
         // Plat
-        return "P";
+        tier = "P";
     }
     else if (sr >= 3000 && sr < 3500) {
         // Masters
-        return "D";
+        tier = "D";
     }
     else if(sr >= 3500 && sr < 4000) {
-        return "M";
+        tier = "M";
     }
     else {
         // GM
-        return "GM";
-    }
-}
-
-export async function findUserInGuild(guild, discordUserId) {
-    let user = undefined;
-
-    if (!Number.isNaN(discordUserId) && discordUserId) {
-        user = guild.members.cache.find(u => discordUserId === u.user.id);
-
-        if (!user) {
-            // Find the user 
-            user = guild.members.fetch(discordUserId);
-        }
+        tier = "GM";
     }
 
-    return user;
+    return tier;
 }
 
-export function loadFile(fileName) {
+// export async function findUserInGuild(guild, discordUserId: string) {
+//     let user = undefined;
+
+//     if (!Number.isNaN(discordUserId) && discordUserId) {
+//         user = guild.members.cache.find(u => discordUserId === u.user.id);
+
+//         if (!user) {
+//             // Find the user 
+//             user = guild.members.fetch(discordUserId);
+//         }
+//     }
+
+//     return user;
+// }
+
+export function loadFile(fileName: string): object {
     const filePath = path.join(__dirname, "../", "data", fileName);
     let fileData;
 
@@ -79,7 +82,7 @@ export function loadFile(fileName) {
     return fileData;
 }
 
-export function saveFile(fileName, data) {
+export function saveFile(fileName: string, data: object): boolean {
     const filePath = path.join(__dirname, "../", "data", fileName);
 
     try {
@@ -92,7 +95,7 @@ export function saveFile(fileName, data) {
     }
 }
 
-export function getCommands(main) {
+export function getCommands(main: string): Array<Command> {
     if (commands[main]) {
         return commands[main];
     }
@@ -101,15 +104,15 @@ export function getCommands(main) {
     }
 }
 
-export function getCommand(main, sub) {
+export function getCommand(main: string, sub: string): Command | undefined {
     const mainCommands = getCommands(main);
+    let command: Command | undefined; 
 
     if (mainCommands.length > 0) {
-        return mainCommands.find(x => sub === x.name);
+        command = mainCommands.find(x => sub === x.name);
     }
-    else {
-        return [];
-    }
+    
+    return command;
 }
 
 export function isUserMod(discordUser) {
@@ -117,16 +120,16 @@ export function isUserMod(discordUser) {
 }
 
 export function getAllPlayerData(): Array<Player> {
-    const pugData = loadFile("playerdata.json");
+    const pugData = loadFile("playerdata.json") as Array<Player>
 
     return pugData;
 }
 
-export function getPlayerDataByDiscordTag(discordName) {
+export function getPlayerDataByDiscordTag(discordName): Player | undefined {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
-export function addPlayer(discordUser, game: string, data) {
+export function addPlayer(discordUser, game: string, data: object): boolean {
     const allPlayerData = getAllPlayerData();
     let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
 

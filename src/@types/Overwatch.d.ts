@@ -1,7 +1,8 @@
 
-declare type OverwatchRole = "support" | "dps" | "tank";
+type OverwatchRole = "support" | "dps" | "tank";
+type OverwatchTier = "B" | "S" | "G" | "P" | "D" | "M" | "GM";
 
-declare interface OverwatchConfig {
+type OverwatchConfig = {
     maxTeams: number;
     maxPlayersOnTeam: number;
     maxSRDiff: number;
@@ -13,7 +14,7 @@ declare interface OverwatchConfig {
     maps: Array<string>;
 }
 
-declare interface OverwatchMatch {
+type OverwatchMatch = {
     teams: Array<OverwatchTeam>,
     map: string,
     responseMessage: string,
@@ -21,7 +22,7 @@ declare interface OverwatchMatch {
     hasFatalError: boolean
 }
 
-declare interface OverwatchTeam {
+type OverwatchTeam = {
     name: string,
     players: Array<Player>,
     tank: Array<Player>,
@@ -33,7 +34,7 @@ declare interface OverwatchTeam {
     neededRoles: () => Array<OverwatchRole>
 }
 
-declare type Player = {
+type Player = {
     discordName: string,
     discordid: string,
     ow?: {
