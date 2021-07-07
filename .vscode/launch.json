@@ -17,15 +17,19 @@
             ]
         },
         {
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "name": "Discord Bot",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\src\\discord\\bot.js",
+            "program": "${workspaceFolder}\\src\\discord\\bot.ts",
+            "preLaunchTask": "npm: botbuild",
+            "sourceMaps": true,
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
             "outFiles": [
-                "${workspaceFolder}/src/discord/*.js"
+                "${workspaceFolder}/build/discord/*.js"
             ],
             "env": { "NODE_ENV" : "development"},
         }

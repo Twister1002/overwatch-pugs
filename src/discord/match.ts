@@ -1,10 +1,10 @@
-const { getRandomInt } = require("./utilities");
-const overwatchMaps = require("../data/maps.json");
-const originalConfig = require("../data/overwatchconfig.json");
+import { getRandomInt } from "./utilities";
+import originalConfig from "../data/overwatchconfig.json";
+import { Overwatch } from "../@types/Overwatch";
 let config = originalConfig;
 
-function createOverWatchMatch(queuedPlayers) { 
-    const matchData = {
+export function createOverWatchMatch(queuedPlayers) { 
+    const matchData: Overwatch.Match = {
         teams: [],
         map: "",
         responseMessage: "",
@@ -16,9 +16,9 @@ function createOverWatchMatch(queuedPlayers) {
 
     if (queuedPlayers.length >= playersNeeded) {
         createTeams(matchData.teams);
-        matchData.map = overwatchMaps[getRandomInt(0, overwatchMaps.length)];
+        matchData.map = config.maps[getRandomInt(0, config.maps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
-        const allTeamSR = matchData.teams.map(team => team.avgSR())
+        const allTeamSR: Array<number> = matchData.teams.map(team => team.avgSR())
         const maxTeamSRDiff = Math.max(...allTeamSR) - Math.min(...allTeamSR);
         
         if (maxTeamSRDiff > config.maxSRDiff || maxTeamSRDiff < -config.maxSRDiff) {
@@ -47,7 +47,7 @@ function createTeams(teams) {
             tank: [],
             support: [],
             dps: [],
-            totalSR: function() {
+            totalSR: function(): number {
                 const roleNames = config.roles.map(r => r.name);
                 let totalSR = 0;
 
@@ -63,7 +63,7 @@ function createTeams(teams) {
                 this.players.push(playerData);
             },
             neededRoles: function () {
-                const roleNamesNeeded = [];
+                const roleNamesNeeded: Array<string> = [];
                 config.roles.forEach(r => {
                     if (this[r.name].length < r.max) {
                         roleNamesNeeded.push(r.name);
@@ -72,7 +72,7 @@ function createTeams(teams) {
 
                 return roleNamesNeeded;
             }
-        })
+        } as Overwatch.Team)
     }
 }
 
@@ -145,12 +145,12 @@ function placePlayersOnTeams(teams, players) {
     return response;
 }
 
-function getMatchConfig() {
+export function getMatchConfig(): Overwatch.Config {
     return config;
 }
 
-function setMatchConfig(settings) {
-    const messages = [];
+export function setMatchConfig(settings): string {
+    const messages: Array<string> = [];
 
     if (Object.entries(settings).some(([setting, value]) => setting === "reset")) {
         resetMatchConfig();
@@ -160,11 +160,11 @@ function setMatchConfig(settings) {
         Object.entries(settings).forEach(([setting, value]) => {
             switch (setting) {
                 case "maxsrdiff": 
-                    config.maxSRDiff = value;
+                    config.maxSRDiff = value as number;
                     messages.push(`${setting}: ${value}`);
                     break;
                 case "teams":
-                    config.maxTeams = value;
+                    config.maxTeams = value as number;
                     messages.push(`${setting}: ${value}`);
                     break;
                 case "tank":
@@ -173,7 +173,7 @@ function setMatchConfig(settings) {
                     const role = config.roles.find(x => x.name === setting);
                     
                     if (role) {
-                        role.max = value;
+                        role.max = value as number;
                     }
 
                     messages.push(`${setting}: ${value}`);
@@ -192,12 +192,6 @@ function setMatchConfig(settings) {
     return messages.join("\n");
 }
 
-function resetMatchConfig() {
+export function resetMatchConfig(): void {
     config = originalConfig;
-}
-
-module.exports = {
-    createOverWatchMatch,
-    setMatchConfig,
-    getMatchConfig
 }
