@@ -84,7 +84,7 @@ export function loadFile(fileName: string): object {
 }
 
 export function saveFile(fileName: string, data: object): boolean {
-    const filePath = path.join(__dirname, "../", "data", fileName);
+    const filePath = path.join(__dirname, "../", "../", fileName);
 
     try {
         fs.writeFileSync(filePath, JSON.stringify(data));
