@@ -68,7 +68,7 @@ export function getSRTier(sr: number): OverwatchTier {
 // }
 
 export function loadFile(fileName: string): object {
-    const filePath = path.join(__dirname, "../", "data", fileName);
+    const filePath = path.join(__dirname, "../", "../", fileName);
     let fileData;
 
     if (fs.existsSync(filePath)) {

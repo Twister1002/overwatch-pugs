@@ -53,7 +53,7 @@ export default function valorant(message: Message, command: Command, messageData
         }
             break;
         case "lobby": {
-            let response = `${playersInQueue.length} players in queue:\n${playersInQueue.join("\n")}`;
+            let response = `${playersInQueue.length} players in queue:\n${playersInQueue.map(p => p.discordName).join("\n")}`;
 
             message.channel.send(response);
         }

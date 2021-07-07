@@ -104,7 +104,7 @@ export default function overwatch(message: Message, command: Command, messageDat
             if (playerToQueue) {
                 isReply = false;
                 response = addPlayerToQueue(playerToQueue, messageData as Array<OverwatchRole>);
-                response = `${playerToQueue} ` + response;
+                response = `<@${playerToQueue}> ` + response;
             }
             else {
                 isReply = true;
@@ -142,7 +142,7 @@ export default function overwatch(message: Message, command: Command, messageDat
             break;
         case "users": {
             // Display all user's data
-            const owPlayers = getAllPlayerData().filter(x => x.ow);
+            const owPlayers: Array<Player> = getAllPlayerData().filter(x => x.ow);
             response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow?.btag})`).join("\n")}`;
         }
             break;
