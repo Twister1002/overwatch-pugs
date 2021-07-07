@@ -10,7 +10,6 @@ import {
 } from "./utilities";
 import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
 import overwatchConfig from "../data/overwatchconfig.json";
-import { Overwatch } from "../@types/Overwatch";
 
 let allowQueue = false;
 let playersInQueue: Array<{[k: string]: any}> = [];

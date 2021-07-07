@@ -1,10 +1,9 @@
 import { getRandomInt } from "./utilities";
 import originalConfig from "../data/overwatchconfig.json";
-import { Overwatch } from "../@types/Overwatch";
 let config = originalConfig;
 
 export function createOverWatchMatch(queuedPlayers) { 
-    const matchData: Overwatch.Match = {
+    const matchData: OverwatchMatch = {
         teams: [],
         map: "",
         responseMessage: "",
@@ -72,7 +71,7 @@ function createTeams(teams) {
 
                 return roleNamesNeeded;
             }
-        } as Overwatch.Team)
+        } as OverwatchTeam)
     }
 }
 
@@ -145,7 +144,7 @@ function placePlayersOnTeams(teams, players) {
     return response;
 }
 
-export function getMatchConfig(): Overwatch.Config {
+export function getMatchConfig(): OverwatchConfig {
     return config;
 }
 

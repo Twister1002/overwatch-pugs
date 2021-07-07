@@ -116,7 +116,7 @@ export function isUserMod(discordUser) {
     return discordUser.roles.cache.some(r => modPermissions.some(m => m.id === r.id));
 }
 
-export function getAllPlayerData() {
+export function getAllPlayerData(): Array<Player> {
     const pugData = loadFile("playerdata.json");
 
     return pugData;
@@ -126,7 +126,7 @@ export function getPlayerDataByDiscordTag(discordName) {
     return getAllPlayerData().find(p => p.discordName === discordName);
 }
 
-export function addPlayer(discordUser, game, data) {
+export function addPlayer(discordUser, game: string, data) {
     const allPlayerData = getAllPlayerData();
     let playerData = allPlayerData.find(x => x.discordName === discordUser.tag);
 
