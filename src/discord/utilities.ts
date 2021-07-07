@@ -126,8 +126,10 @@ export function getAllPlayerData(): Array<Player> {
     return pugData;
 }
 
-export function getPlayerDataByDiscordTag(discordName): Player | undefined {
-    return getAllPlayerData().find(p => p.discordName === discordName);
+export function getPlayerDataByDiscordTag(discordUser: User | string): Player | undefined {
+    const tag =  discordUser instanceof User ? discordUser.tag : <string>discordUser;
+
+    return getAllPlayerData().find(p => p.discordName === tag);
 }
 
 export function addPlayer(discordUser: User, game: string, data: OverwatchPlayerData | ValorantPlayerData): boolean {

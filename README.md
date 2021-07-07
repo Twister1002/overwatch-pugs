@@ -6,9 +6,6 @@
  - Match History
 - Allow mods to create new users
 
-## Bugs:
-- Fix parsing issue with setting players info
-
 ## Version 1.3.1
  - Added custom types
  - Removed unused React stuff

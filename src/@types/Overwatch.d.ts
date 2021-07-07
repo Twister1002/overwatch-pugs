@@ -1,5 +1,5 @@
 
-type OverwatchRole = "support" | "dps" | "tank";
+type OverwatchRole = "support" | "dps" | "tank" | "all";
 type OverwatchTier = "B" | "S" | "G" | "P" | "D" | "M" | "GM";
 
 type OverwatchConfig = {

@@ -30,7 +30,7 @@ export default function valorant(message: Message, command: Command, messageData
         }
             break;
         case "unq": {
-            playersInQueue = [...playersInQueue.filter(x => x !== message.author.tag)];
+            playersInQueue = [...playersInQueue.filter(x => x.discordName !== message.author.tag)];
             message.reply("has been removed from queue");
         }
             break;
@@ -68,7 +68,7 @@ export default function valorant(message: Message, command: Command, messageData
             let isReply = false;
             let response = "";
             const user: User = message.mentions.users.first() || message.author;
-            const playerData = getPlayerDataByDiscordTag(user.tag);
+            const playerData = getPlayerDataByDiscordTag(user);
 
             if (playerData?.val) {
                 if (user.tag === playerData.discordName) {
@@ -159,7 +159,7 @@ function addPlayerToQueue(discordTag: string): {message: string, error: boolean}
         const playerData: Player | undefined = getPlayerDataByDiscordTag(discordTag);
 
         if (playerData && playerData.val) {
-            const isInQueue = playersInQueue.some(x => x === playerData.discordName);
+            const isInQueue = playersInQueue.some(x => x.discordName === playerData.discordName);
 
             if (!isInQueue) {
                 playersInQueue.push({
