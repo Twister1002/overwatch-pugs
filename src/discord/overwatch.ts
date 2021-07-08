@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, User } from "discord.js";
+import { Channel, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
 import { 
     parseToNumber,
     getSRTier,
@@ -12,7 +12,7 @@ import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
 import overwatchConfig from "../data/overwatchconfig.json";
 
 let allowQueue = false;
-let playersInQueue: Array<Player & { queue: Array<OverwatchRole>}> = [];
+let playersInQueue: Array<OverwatchQueuedPlayer> = [];
 
 export default function overwatch(message: Message, command: Command, messageData: Array<string>) {
     let response: string = "";
@@ -132,7 +132,7 @@ export default function overwatch(message: Message, command: Command, messageDat
         }
             break;
         case "startmatch": {
-            response = createMatch(message.channel);
+            createMatch(message.channel);
         }
             break;
         case "maps": {
@@ -150,11 +150,7 @@ export default function overwatch(message: Message, command: Command, messageDat
             const testPlayerData = getAllPlayerData().filter(x => x.ow);
 
             allowQueue = true;
-            // for (let i = 0; i < testPlayerData.length; i++) {
-            //     const player = testPlayerData.splice(getRandomInt(0, testPlayerData.length), 1)[0];
-                
-            //     addPlayerToQueue(player.discordName, ["all"]);
-            // }
+            // testPlayerData.forEach(p => addPlayerToQueue(p, ["all"]))
 
             // Test case for invalid match and could not be created.
             const playersToTest = [
@@ -178,7 +174,7 @@ export default function overwatch(message: Message, command: Command, messageDat
             
             allowQueue = false;
 
-            response = createMatch(message.channel);
+            createMatch(message.channel);
         }
             break;
         case "setup": {
@@ -255,72 +251,70 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
     return response;
 }
 
-function createMatch(channel) {
-    let response: string = "";
+function createMatch(channel: TextChannel | DMChannel | NewsChannel): void {
 
     if (!allowQueue) {
-        const playerList: Array<Player & {queue: Array<OverwatchRole>}> = []
+        let createdMatches: Array<OverwatchMatch> = [];
+        let bestMatch: OverwatchMatch | undefined;
 
-        // Put all players in a list with all of their data
-        playersInQueue.forEach(p => {
-            const playerInfo: Player | undefined = getPlayerDataByDiscordTag(p.discordName);
+        try {
+            while (createdMatches.length < 5000) {
+                let lastCreatedMatch: OverwatchMatch | undefined = createOverWatchMatch([...playersInQueue]);
+                createdMatches.push(lastCreatedMatch);
 
-            if (playerInfo) {
-                playerList.push({
-                    ...playerInfo,
-                    queue: p.queue
-                })
-            }
-        })
-
-        // Place users in the match
-        let matchesCreated: number = 0;
-        let matchDetails: OverwatchMatch | null = null;
-
-        while ((matchDetails === null || matchDetails.hasError) && matchesCreated < 5000) {
-            matchesCreated++;
-            matchDetails = createOverWatchMatch(playerList);
-
-            if (matchDetails?.hasFatalError) {
-                break;
-            }
-        }
-
-        if (matchesCreated >= 5000) {
-            response = `Unable to create a suitable match within ${matchesCreated} tries. Please restart queue.`
-        }
-        else if (matchDetails !== null && (matchDetails.hasError || matchDetails.hasFatalError)) {
-            if (matchDetails.hasError) {
-                console.log(matchDetails.responseMessage);
-
-                if (matchDetails.hasFatalError) {
-                    response = matchDetails.responseMessage;
+                if (!lastCreatedMatch.hasError) {
+                    // No error found when creating the last match. Use it.
+                    bestMatch = lastCreatedMatch;
+                    break;
                 }
             }
-        }
-        else {
-            const embeddedMessage: MessageEmbed = new MessageEmbed()
+
+            // If a match was not best suited, then find the closest!
+            if (!bestMatch) {
+                const owConfig = getMatchConfig();
+                bestMatch = createdMatches.filter(m => {
+                    const playersOnTeam: Array<number> = m.teams.map(x => x.players.length);
+                    if (playersOnTeam.every(x => x === owConfig.maxPlayersOnTeam)) {
+                        return m;
+                    }
+                })
+                .sort((a, b) => a.getSRDiff() - b.getSRDiff())[0];
+
+                console.log(`After ${createdMatches.length} matches the best match will be used:`)
+                console.log(bestMatch);
+            }
+
+            if (bestMatch) {
+                // Display the match... or the closest match
+                const embeddedMessage: MessageEmbed = new MessageEmbed()
                 .setColor("#0099ff")
                 .setTitle("Overwatch Match")
-                .setDescription(`Map: ${matchDetails?.map}`)
+                .setDescription(`Map: ${bestMatch.map}`)
 
-            matchDetails?.teams.forEach((team) => {
-                embeddedMessage.addField("\u200B", "\u200B", false)
-                embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
-                embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank as number)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps as number)}\n`).join("\n") || "None", true)
-                embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support as number)}\n`).join("\n") || "None", true)
-            })
+                bestMatch.teams.forEach((team) => {
+                    embeddedMessage.addField("\u200B", "\u200B", false)
+                    embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
+                    embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank as number)}\n`).join("\n") || "None", true)
+                    embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps as number)}\n`).join("\n") || "None", true)
+                    embeddedMessage.addField(`Supports:`, team.support.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support as number)}\n`).join("\n") || "None", true)
+                })
 
-            console.log(`Created match after ${matchesCreated} attempts`)
-            channel.send({ embed: embeddedMessage });
+                console.log(`Created match after ${createdMatches.length} attempts`)
+                channel.send({ embed: embeddedMessage });
+            }
+            else {
+                console.log(`There is not a best match that could be found...`)
+                channel.send(`No match is available within the current settings. Please requeue.`)
+            }
+        }
+        catch (e: any) {
+            channel.send(`A fatal error has occured: ${e.message}`)
+            console.error(e.message);
         }
     }
     else {
         channel.send("Queue must be closed to start a match.");
     }
-
-    return response;
 }
 
 function sendMessageToServer(message: Message, response: string, isReply: boolean = false, deleteMessage: boolean = false) {

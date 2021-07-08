@@ -19,7 +19,7 @@ type OverwatchMatch = {
     map: string,
     responseMessage: string,
     hasError: boolean,
-    hasFatalError: boolean
+    getSRDiff: () => number
 }
 
 type OverwatchTeam = {
@@ -32,4 +32,15 @@ type OverwatchTeam = {
     avgSR: () => number,
     addPlayerToTeam: (player: Player, role: OverwatchRole) => void
     neededRoles: () => Array<OverwatchRole>
+    getRandomNeededRole: () => OverwatchRole
+}
+
+type OverwatchQueuedPlayer = Player & {queue: Array<OverwatchRole>};
+
+type OverwatchRoleBucket = {
+    tank: Array<Player>,
+    support: Array<Player>
+    dps: Array<Player>
+    getRandomPlayerFromRole: (role: OverwatchRole) => Player | undefined
+    removePlayerFromBucket: (player: Player) => void
 }

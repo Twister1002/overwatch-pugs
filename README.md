@@ -5,6 +5,7 @@
  - DB Tables 
  - Match History
 - Allow mods to create new users
+- Enforce hash numbers when settings tags
 
 ## Version 1.3.1
  - Added custom types

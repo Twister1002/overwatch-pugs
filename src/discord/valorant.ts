@@ -139,7 +139,7 @@ export default function valorant(message: Message, command: Command, messageData
             break;
         case "testmatch": {
             canQueue = true;
-            const players = getAllPlayerData().filter(x => x.val);
+            const players: Array<Player> = getAllPlayerData().filter(x => x.val);
             players.forEach(x => addPlayerToQueue(x.discordName));
             canQueue = false;
 
@@ -255,7 +255,7 @@ function createMatch(message: Message): void {
         .addField("\u200B", "\u200B", false);
 
         matchInfo.teams.forEach(team => {
-            embeddedMessage.addField(`${team.name}}`, team.players.map(p => {
+            embeddedMessage.addField(`${team.name}`, team.players.map(p => {
                 const discord = false ? `<@${p.discordid}>` : p.discordName;
                 return `${discord}\n${p.val?.riotTag}\n${getRankName(p.val?.rank as number)}\n`
             }).join("\n") || "None", true);
