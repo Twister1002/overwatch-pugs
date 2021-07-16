@@ -6,7 +6,8 @@ import {
     getCommand,
     getPlayerDataByDiscordTag,
     getAllPlayerData,
-    addPlayer 
+    addPlayer, 
+    isValidPlayerTag
 } from "./utilities";
 import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
 import overwatchConfig from "../data/overwatchconfig.json";
@@ -55,31 +56,37 @@ export default function overwatch(message: Message, command: Command, messageDat
             const dpsIndex = messageData.findIndex(p => p.toLowerCase().includes("dps"));
             const tankIndex = messageData.findIndex(p => p.toLowerCase().includes("tank"));
 
-            const bTagInfo = btagIndex > -1 ? messageData[btagIndex + 1].replace(/[<>]/g, "") : null;
-            const tankRank = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : undefined;
-            const supportRank = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : undefined;
-            const dpsRank = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : undefined;
+            const bTagInfo: string = btagIndex > -1 ? messageData[btagIndex + 1].replace(/[<>]/g, "") : "";
+            const tankRank: number = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
+            const supportRank: number = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
+            const dpsRank: number = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
 
-            const dataToSave: OverwatchPlayerData = {} as OverwatchPlayerData;
-            if (bTagInfo) { dataToSave.btag = bTagInfo; }
-            if (tankRank) { dataToSave.tank = tankRank; }
-            if (supportRank) { dataToSave.support = supportRank; }
-            if (dpsRank) { dataToSave.dps = dpsRank; }
-            const isSaved = addPlayer(message.author, "ow", dataToSave)
+            if (isValidPlayerTag(bTagInfo)) {
+                const dataToSave: OverwatchPlayerData = {} as OverwatchPlayerData;
+                if (bTagInfo) { dataToSave.btag = bTagInfo; }
+                if (tankRank > 500) { dataToSave.tank = tankRank; }
+                if (supportRank > 500) { dataToSave.support = supportRank; }
+                if (dpsRank > 500) { dataToSave.dps = dpsRank; }
+                const isSaved = addPlayer(message.author, "ow", dataToSave)
 
-            if (isSaved) {
-                const playerData: OverwatchPlayerData | undefined = getPlayerDataByDiscordTag(message.author)?.ow;
-                
-                if (playerData) {
-                    response =  playerData.btag ? `Battle Tag: ${playerData.btag};` : ``;
-                    response +=  playerData.tank ? ` Tank: ${playerData.tank};` : ``;
-                    response +=  playerData.dps ? ` DPS: ${playerData.dps};` : ``;
-                    response +=  playerData.support ? ` Support: ${playerData.support}` : ``;
+                if (isSaved) {
+                    const playerData: OverwatchPlayerData | undefined = getPlayerDataByDiscordTag(message.author)?.ow;
+                    
+                    if (playerData) {
+                        response =  playerData.btag ? `Battle Tag: ${playerData.btag};` : ``;
+                        response +=  playerData.tank ? ` Tank: ${playerData.tank};` : ``;
+                        response +=  playerData.dps ? ` DPS: ${playerData.dps};` : ``;
+                        response +=  playerData.support ? ` Support: ${playerData.support}` : ``;
+                    }
+                }
+                else {
+                    console.log("Error in saving user data");
+                    response = "Failed to save data";
                 }
             }
             else {
-                console.log("Error in saving user data");
-                response = "Failed to save data";
+                deleteMessage = false;
+                response = "You must provide your hashtag and numbers";
             }
         }
             break;

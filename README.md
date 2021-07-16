@@ -6,6 +6,10 @@
  - Match History
 - Allow mods to create new users
 - Enforce hash numbers when settings tags
+- Add logging information for log txt files
+
+## Version 1.3.2
+ - Enforced users to provide a hashtag and numbers after to be a valid in-game tag
 
 ## Version 1.3.1
  - Added custom types

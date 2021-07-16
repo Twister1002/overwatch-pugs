@@ -170,3 +170,28 @@ export function removePlayer(discordUser: User): boolean {
 
     return saveFile("playerdata.json", allPlayerData);
 }
+
+export function logData(logType: LogType, message: string) {
+
+}
+
+/**
+ * Checks a string provided for the hashtag
+ * @param tag A string of the tag gamer tag
+ * @returns True if we can identify a HashTag and at least 2 numbers
+ */
+export function isValidPlayerTag(tag: string): boolean {
+    let isValid = false;
+    const hashIndex = tag.indexOf("#");
+
+    if (hashIndex > -1) {
+        // Check for at least 2 numbers
+        const tagNumbers = tag.substr(hashIndex + 1);
+
+        if (tagNumbers.length > 2) {
+            isValid = true;
+        }
+    }
+    
+    return isValid;
+}

@@ -1,4 +1,12 @@
-import { getAllPlayerData, getRandomInt, getPlayerDataByDiscordTag, addPlayer, removePlayer, getCommand } from "./utilities";
+import { 
+    getAllPlayerData, 
+    getRandomInt, 
+    getPlayerDataByDiscordTag, 
+    addPlayer, 
+    removePlayer, 
+    getCommand, 
+    isValidPlayerTag 
+} from "./utilities";
 import valorantConfig from "../data/valorantconfig.json";
 import { Message, MessageEmbed, User } from "discord.js";
 
@@ -110,17 +118,24 @@ export default function valorant(message: Message, command: Command, messageData
             const rankString: string | undefined = messageData.shift();
             let rank: number = config.ranks.findIndex(r => r === rankString?.toLowerCase().replace(/[<>]/g, "")) || -1;
 
-            const result = addPlayer(message.author, "val", {
-                riotTag,
-                rank
-            });
+            if (isValidPlayerTag(riotTag)) {
+                const result = addPlayer(message.author, "val", {
+                    riotTag,
+                    rank
+                });
 
-            if (result) {
-                message.delete().catch(e => console.log(e));
-                message.reply(`your info has been saved: ${riotTag} at rank ${getRankName(rank)}`);
+                if (result) {
+                    message
+                    .delete()
+                    .then(m => m.reply(`your info has been saved: ${riotTag} at rank ${getRankName(rank)}`))
+                    .catch(e => console.log(e));
+                }
+                else {
+                    message.reply("Unable to save your info due to an error.");
+                }
             }
             else {
-                message.reply("Unable to save your info due to an error.");
+                message.reply("You must provide your hashtag and numbers");
             }
         }
             break;
