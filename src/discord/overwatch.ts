@@ -1,8 +1,7 @@
-import { Channel, DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
+import { DMChannel, Message, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
 import { 
     parseToNumber,
     getSRTier,
-    getRandomInt,
     getCommand,
     getPlayerDataByDiscordTag,
     getAllPlayerData,
@@ -40,8 +39,8 @@ export default function overwatch(message: Message, command: Command, messageDat
 
                 if (taggedUser.tag === playerData?.discordName) {
                     isReply = true;
-                    const setCommand: Command | undefined = getCommand("val", "set");
-                    response += ` Please set your info using '!ow ${setCommand?.name} ${setCommand?.args}'`;
+                    const setCommand: Command | undefined = getCommand("set");
+                    response += ` Please set your info using '!ow ${setCommand?.name} ${setCommand?.args.ow}'`;
                 }
             }
         }
@@ -93,9 +92,9 @@ export default function overwatch(message: Message, command: Command, messageDat
         case "startq": {
             playersInQueue = [];
             allowQueue = true;
-            const commandInfo = getCommand("ow", "q");
+            const commandInfo = getCommand("q");
 
-            response = `Queue has been opened.\nTo queue for a role, please use \`!ow ${commandInfo?.name} ${commandInfo?.args}\`.`;
+            response = `Queue has been opened.\nTo queue for a role, please use \`!ow ${commandInfo?.name} ${commandInfo?.args.ow}\`.`;
         } 
         break;
         case "stopq": {
@@ -147,11 +146,6 @@ export default function overwatch(message: Message, command: Command, messageDat
             overwatchConfig.maps.forEach(m => response += `- ${m}\n`)
         }
             break;
-        case "users": {
-            // Display all user's data
-            const owPlayers: Array<Player> = getAllPlayerData().filter(x => x.ow);
-            response = `Users Registered: ${owPlayers.length}\n${owPlayers.map(x => `- ${x.discordName} (${x.ow?.btag})`).join("\n")}`;
-        }
             break;
         case "testmatch": {
             const testPlayerData = getAllPlayerData().filter(x => x.ow);
@@ -247,8 +241,8 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
             }
         }
         else {
-            const setCommand = getCommand("ow", "set");
-            response = `No record exists for ${player?.discordName}. Please set your info using '!ow ${setCommand?.name} ${setCommand?.args}'`;
+            const setCommand = getCommand("set");
+            response = `No record exists for ${player?.discordName}. Please set your info using '!ow ${setCommand?.name} ${setCommand?.args.ow}'`;
         }
     }
     else {
