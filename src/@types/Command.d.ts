@@ -1,6 +1,6 @@
 type Command = {
     name: string,
     isModCommand: boolean,
-    help: string,
-    args: string
+    help: { ow: string, val: string },
+    args: { ow: string, val: string }
 }

@@ -52,21 +52,6 @@ export function getSRTier(sr: number): OverwatchTier {
     return tier;
 }
 
-// export async function findUserInGuild(guild, discordUserId: string) {
-//     let user = undefined;
-
-//     if (!Number.isNaN(discordUserId) && discordUserId) {
-//         user = guild.members.cache.find(u => discordUserId === u.user.id);
-
-//         if (!user) {
-//             // Find the user 
-//             user = guild.members.fetch(discordUserId);
-//         }
-//     }
-
-//     return user;
-// }
-
 export function loadFile(fileName: string): object {
     const filePath = path.join(__dirname, "../", "../", fileName);
     let fileData;
@@ -96,23 +81,13 @@ export function saveFile(fileName: string, data: object): boolean {
     }
 }
 
-export function getCommands(main: string): Array<Command> {
-    if (commands[main]) {
-        return commands[main];
-    }
-    else {
-        return [];
-    }
+export function getCommands(includeAdmin: boolean): Array<Command> {
+    const allCommands = includeAdmin ? commands : commands.filter(x => !x.isModCommand);
+    return allCommands.sort((a, b) => (+a.isModCommand - +b.isModCommand));
 }
 
-export function getCommand(main: string, sub?: string): Command | undefined {
-    const mainCommands = getCommands(main);
-    let command: Command | undefined; 
-
-    if (mainCommands.length > 0) {
-        command = mainCommands.find(x => sub === x.name);
-    }
-    
+export function getCommand(commandName: string): Command | undefined {
+    const command = commands.find(x => commandName === x.name);
     return command;
 }
 
@@ -163,9 +138,6 @@ export function addPlayer(discordUser: User, game: string, data: OverwatchPlayer
 }
 
 export function removePlayer(discordUser: User): boolean {
-    // Check by discord ID
-
-    // Check by tag name
     const allPlayerData = getAllPlayerData().filter(x => x.discordName !== discordUser.tag);
 
     return saveFile("playerdata.json", allPlayerData);
