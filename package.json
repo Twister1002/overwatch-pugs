@@ -15,7 +15,7 @@
   },
   "scripts": {
     "botbuild": "tsc -p ./tsconfig.json",
-    "botprod": "set NODE_ENV=production&& node ./build/discord/bot.js",
-    "botdev": "set NODE_ENV=development&& nodemon ./build/discord/bot.js"
+    "botprod": "npm run botbuild&&set NODE_ENV=production&&node ./build/discord/bot.js",
+    "botdev": "npm run botbuild&&set NODE_ENV=development&&nodemon ./build/discord/bot.js"
   }
 }
