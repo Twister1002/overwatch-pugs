@@ -5,11 +5,15 @@
  - DB Tables 
  - Match History
 - Allow mods to create new users
-- Enforce hash numbers when settings tags
 - Add logging information for log txt files
+
+## Version 1.4
+### All about the commands
+ - Converting common code of both games, Valorant and OW, to a more uniformed way. It will only branch out when needed. Etc: Matchmaking, setting player info, etc.
 
 ## Version 1.3.2
  - Enforced users to provide a hashtag and numbers after to be a valid in-game tag
+ - Overwatch ranks now only save when the value is greater than 500
 
 ## Version 1.3.1
  - Added custom types

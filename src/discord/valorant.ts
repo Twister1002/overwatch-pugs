@@ -90,10 +90,10 @@ export default function valorant(message: Message, command: Command, messageData
 
                 if (user.tag === playerData?.discordName) {
                     isReply = true;
-                    const setCommand = getCommand("val", "set");
+                    const setCommand: Command | undefined = getCommand("set");
 
                     if (setCommand) {
-                        response += ` Please set your info using '!val ${setCommand.name} ${setCommand.args}'`;
+                        response += ` Please set your info using '!val ${setCommand.name} ${setCommand.args.val}'`;
                     }
                 }
             }
@@ -186,8 +186,8 @@ function addPlayerToQueue(discordTag: string): {message: string, error: boolean}
             }
         }
         else {
-            const setCommand = getCommand("val", "set");
-            response.message = `No record exists for ${discordTag}. Please set your info using '!val ${setCommand?.name} ${setCommand?.args}'`;
+            const setCommand = getCommand("set");
+            response.message = `No record exists for ${discordTag}. Please set your info using '!val ${setCommand?.name} ${setCommand?.args.val}'`;
             response.error = true;
         }
     }
