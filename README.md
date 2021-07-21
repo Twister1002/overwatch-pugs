@@ -6,8 +6,23 @@
  - Match History
 - Allow mods to create new users
 
-## Bugs:
-- Fix parsing issue with setting players info
+## Version 1.5
+Creating a better way to find out what happens to the bot. Logs are all the rage this version
+ - Created way to allow logging
+ - Created new DateTime method to obtain a specific formatted date / time string
+
+## Version 1.4
+### All about the commands
+ - Converting common code of both games, Valorant and OW, to a more uniformed way. It will only branch out when needed. Etc: Matchmaking, setting player info, etc.
+
+## Version 1.3.2
+ - Enforced users to provide a hashtag and numbers after to be a valid in-game tag
+ - Overwatch ranks now only save when the value is greater than 500
+
+## Version 1.3.1
+ - Added custom types
+ - Removed unused React stuff
+  - If a website is developed, it'll be added back in
 
 ## Version 1.3.0
 - Implemented TypeScript

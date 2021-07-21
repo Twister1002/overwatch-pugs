@@ -1,178 +1,194 @@
-{
-    "global": [
-        {
-            "name": "commands",
-            "isModCommand": false,
-            "help": "Shows all the available commands for the user",
-            "args": ""
+[
+    {
+        "name": "commands",
+        "isModCommand": false,
+        "help": {
+            "ow": "Shows all the available commands for the user",
+            "val": "Shows all the available commands for the user"
         },
-        {
-            "name": "help",
-            "isModCommand": false,
-            "help": "Shows all the available commands for the user",
-            "args": "<command>"
+        "args": {
+            "ow": "Shows all available commands to the user",
+            "val": "Shows all available commands to the user"
         }
-    ],
-    "ow": [
-        {
-            "name": "info",
-            "isModCommand": false,
-            "help": "Provides info about the user's stats",
-            "args": "<DiscordUser>"
+    },
+    {
+        "name": "help",
+        "isModCommand": false,
+        "help": {
+            "ow": "Shows all the available commands for the user",
+            "val": "Shows all the available commands for the user"
         },
-        {
-            "name": "maps",
-            "isModCommand": false,
-            "help": "All maps available for matches",
-            "args": ""
-        },
-        {
-            "name": "users",
-            "isModCommand": false,
-            "help": "Shows all users who are registered in the bot",
-            "args": ""
-        },
-        {
-            "name": "lobby",
-            "isModCommand": false,
-            "help": "Shows all players in queue",
-            "args": ""
-        },
-        {
-            "name": "set",
-            "isModCommand": false,
-            "help": "Sets your info for match making",
-            "args": "btag <Battle.NET tag> support <SR> dps <SR> tank <SR>"
-        },
-        {
-            "name": "q",
-            "isModCommand": false,
-            "help": "Queues you into the system for match making",
-            "args": "<support | dps | tank | all>"
-        },
-        {
-            "name": "quser",
-            "isModCommand": true,
-            "help": "Queues a specific user for match making",
-            "args": "<DiscordUser> <support | dps | tank | all>"
-        },
-        {
-            "name": "unq",
-            "isModCommand": false,
-            "help": "Removed the player from queue",
-            "args": ""
-        },
-        {
-            "name": "startmatch",
-            "isModCommand": true,
-            "help": "Notifies the system to create matches from players in lobby",
-            "args": ""
-        },
-        {
-            "name": "startq",
-            "isModCommand": true,
-            "help": "Starts the queue and allows players to queue for match making",
-            "args": ""
-        },
-        {
-            "name": "stopq",
-            "isModCommand": true,
-            "help": "Stops the queue and disallows players to queue for match making",
-            "args": ""
-        },
-        {
-            "name": "testmatch",
-            "isModCommand": true,
-            "isDevCommand": true,
-            "help": "TESTING ONLY",
-            "args": ""
-        },
-        {
-            "name": "setup",
-            "isModCommand": true,
-            "help": "Sets specific information for matching players into teams.",
-            "args": "<srdiff | teams | support | tank | dps> <value>"
+        "args": {
+            "ow": "<command>",
+            "val": "<command>"
         }
-    ],
-    "val": [
-        {
-            "name": "info",
-            "isModCommand": false,
-            "help": "Provides info about the user's stats",
-            "args": "<DiscordUser>"
+    },
+    {
+        "name": "info",
+        "isModCommand": false,
+        "help": {
+            "ow": "Provides info about the user's stats",
+            "val": "Provides info about the user's stats"
         },
-        {
-            "name": "maps",
-            "isModCommand": false,
-            "help": "All maps available for matches",
-            "args": ""
-        },
-        {
-            "name": "users",
-            "isModCommand": false,
-            "help": "Shows all users who are registered in the bot",
-            "args": ""
-        },
-        {
-            "name": "lobby",
-            "isModCommand": false,
-            "help": "Shows all players in queue",
-            "args": ""
-        },
-        {
-            "name": "set",
-            "isModCommand": false,
-            "help": "Sets your info for match making",
-            "args": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
-        },
-        {
-            "name": "remove",
-            "isModcommand": true,
-            "help": "",
-            "args": ""
-        },
-        {
-            "name": "q",
-            "isModCommand": false,
-            "help": "Queues you into the system for match making",
-            "args": ""
-        },
-        {
-            "name": "quser",
-            "isModCommand": true,
-            "help": "Queues a specific user for match making",
-            "args": "<DiscordUser>"
-        },
-        {
-            "name": "unq",
-            "isModCommand": false,
-            "help": "Removed the player from queue",
-            "args": ""
-        },
-        {
-            "name": "startmatch",
-            "isModCommand": true,
-            "help": "Notifies the system to create matches from players in lobby",
-            "args": ""
-        },
-        {
-            "name": "startq",
-            "isModCommand": true,
-            "help": "Starts the queue and allows players to queue for match making",
-            "args": ""
-        },
-        {
-            "name": "stopq",
-            "isModCommand": true,
-            "help": "Stops the queue and disallows players to queue for match making",
-            "args": ""
-        },
-        {
-            "name": "testmatch",
-            "isModCommand": true,
-            "isDevCommand": true,
-            "help": "TESTING ONLY",
-            "args": ""
+        "args": {
+            "ow": "<DiscordUser>",
+            "val": "<DiscordUser>"
         }
-    ]
-}
+    },
+    {
+        "name": "users",
+        "isModCommand": true,
+        "help": {
+            "ow": "Shows all users who are registered in the bot",
+            "val": "Shows all users who are registered in the bot"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "remove",
+        "isModCommand": false,
+        "help": {
+            "ow": "Removes the player from the bot's records",
+            "val": "Removes the player from the bot's records"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "startq",
+        "isModCommand": true,
+        "help": {
+            "ow": "Starts the queue and allows players to queue for match making",
+            "val": "Starts the queue and allows players to queue for match making"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "stopq",
+        "isModCommand": true,
+        "help": {
+            "ow": "Stops the queue and disallows players to queue for match making",
+            "val": "Stops the queue and disallows players to queue for match making"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "unq",
+        "isModCommand": false,
+        "help": {
+            "ow": "Removes the player from queue",
+            "val": "Removes the player from queue"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "startmatch",
+        "isModCommand": true,
+        "help": {
+            "ow": "Notifies the system to create matches from players in lobby",
+            "val": "Notifies the system to create matches from players in lobby"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "testmatch",
+        "isModCommand": true,
+        "help": {
+            "ow": "Creates a match from all random players",
+            "val": "Creates a match from all random players"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "lobby",
+        "isModCommand": false,
+        "help": {
+            "ow": "Shows all players in queue",
+            "val": "Shows all players in queue"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "maps",
+        "isModCommand": false,
+        "help": {
+            "ow": "All maps available for matches",
+            "val": "All maps available for matches"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "set",
+        "isModCommand": false,
+        "help": {
+            "ow": "Sets your info for match making",
+            "val": "Sets your info for match making"
+        },
+        "args": {
+            "ow": "btag <Battle.NET tag> support <SR> dps <SR> tank <SR>",
+            "val": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
+        }
+    },
+    {
+        "name": "q",
+        "isModCommand": false,
+        "help": {
+            "ow": "Queues you into the system for match making",
+            "val": "Queues you into the system for match making"
+        },
+        "args": {
+            "ow": "<support | dps | tank | all>",
+            "val": ""
+        }
+    },
+    {
+        "name": "quser",
+        "isModCommand": true,
+        "help": {
+            "ow": "Queues a specific user for match making",
+            "val": "Queues a specific user for match making"
+        },
+        "args": {
+            "ow": "<DiscordUser> <support | dps | tank | all>",
+            "val": "<DiscordUser>"
+        }
+    },
+    {
+        "name": "setup",
+        "isModCommand": true,
+        "help": {
+            "ow": "Updates the configuration",
+            "val": "<maxsrdiff | teams | support | tank | dps> <value>"
+        },
+        "args": {
+            "ow": "<srdiff | teams | support | tank | dps> <value>",
+            "val": ""
+        }
+    }
+]

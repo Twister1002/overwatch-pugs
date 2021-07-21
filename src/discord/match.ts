@@ -1,29 +1,27 @@
-import { getRandomInt } from "./utilities";
+import { getRandomInt, getSRTier } from "./utilities";
 import originalConfig from "../data/overwatchconfig.json";
-import { Overwatch } from "../@types/Overwatch";
 let config = originalConfig;
 
-export function createOverWatchMatch(queuedPlayers) { 
-    const matchData: Overwatch.Match = {
-        teams: [],
-        map: "",
+export function createOverWatchMatch(queuedPlayers: Array<OverwatchQueuedPlayer>) { 
+    const playersNeeded = config.maxTeams * config.maxPlayersOnTeam;
+    const matchData: OverwatchMatch = {
+        teams: createTeams(),
+        map: config.maps[getRandomInt(0, config.maps.length)],
         responseMessage: "",
         hasError: false,
-        hasFatalError: false
+        getSRDiff: function(): number {
+            const teamsAvgSR = this.teams.map(x => x.avgSR());
+            return Math.max(...teamsAvgSR) - Math.min(...teamsAvgSR);
+        }
     }
 
-    const playersNeeded = config.maxTeams * config.maxPlayersOnTeam;
-
     if (queuedPlayers.length >= playersNeeded) {
-        createTeams(matchData.teams);
-        matchData.map = config.maps[getRandomInt(0, config.maps.length)];
         const response = placePlayersOnTeams(matchData.teams, queuedPlayers);
-        const allTeamSR: Array<number> = matchData.teams.map(team => team.avgSR())
-        const maxTeamSRDiff = Math.max(...allTeamSR) - Math.min(...allTeamSR);
+        const srDiff: number = matchData.getSRDiff();
         
-        if (maxTeamSRDiff > config.maxSRDiff || maxTeamSRDiff < -config.maxSRDiff) {
+        if (srDiff > config.maxSRDiff || srDiff < -config.maxSRDiff) {
             matchData.hasError = true;
-            matchData.responseMessage = `SR is too great of difference at ${maxTeamSRDiff}`;
+            matchData.responseMessage = `SR is too great of difference at ${srDiff}`;
         }
         else {
             matchData.hasError = response.hasError;
@@ -31,17 +29,17 @@ export function createOverWatchMatch(queuedPlayers) {
         }
     }
     else {
-        matchData.hasFatalError = true;
-        matchData.hasError = true;
-        matchData.responseMessage = `Not enough players queued. Need ${playersNeeded - queuedPlayers.length} players`
+        throw new Error(`Not enough players queued. Need ${playersNeeded - queuedPlayers.length} players`);
     }
     
     return matchData;
 }
 
-function createTeams(teams) {
-    while (teams.length < config.maxTeams) {
-        teams.push({
+function createTeams(): Array<OverwatchTeam> {
+    const teams: Array<OverwatchTeam> = [];
+
+    for (let i = 0; i < config.maxTeams; i++) {
+        const team: OverwatchTeam = {
             name: config.teamNames[teams.length] || "N/A",
             players: [],
             tank: [],
@@ -51,42 +49,51 @@ function createTeams(teams) {
                 const roleNames = config.roles.map(r => r.name);
                 let totalSR = 0;
 
-                roleNames.forEach(r => this[r].forEach(p => totalSR += p[r]))
+                roleNames.forEach(r => this[r].forEach(p => totalSR += p.ow[r]))
 
                 return totalSR;
             },
             avgSR: function () {
                 return Math.floor(this.totalSR() / this.players.length)
             },
-            addPlayerToTeam: function (playerData, role) {
-                this[role].push(playerData);
-                this.players.push(playerData);
+            addPlayerToTeam: function (player: Player, role: OverwatchRole) {
+                this[role].push(player);
+                this.players.push(player);
             },
-            neededRoles: function () {
-                const roleNamesNeeded: Array<string> = [];
+            neededRoles: function (): Array<OverwatchRole> {
+                const roleNamesNeeded: Array<OverwatchRole> = [];
                 config.roles.forEach(r => {
                     if (this[r.name].length < r.max) {
-                        roleNamesNeeded.push(r.name);
+                        roleNamesNeeded.push(r.name as OverwatchRole);
                     }
                 })
 
                 return roleNamesNeeded;
+            },
+            getRandomNeededRole: function (): OverwatchRole {
+                const neededRoles: Array<OverwatchRole> = this.neededRoles();
+                const randomRole: OverwatchRole = neededRoles[getRandomInt(0, neededRoles.length)];
+                return randomRole;
             }
-        } as Overwatch.Team)
+        }
+
+        teams.push(team);
     }
+
+    return teams;
 }
 
-function placePlayersOnTeams(teams, players) {
+function placePlayersOnTeams(teams: Array<OverwatchTeam>, players: Array<OverwatchQueuedPlayer>) {
     const response = {
         hasError: false,
         message: ""
     }
-    const queuedPlayers = [...players];
-    const roleBucket = {
+    const queuedPlayers: Array<OverwatchQueuedPlayer> = [...players];
+    const roleBucket: OverwatchRoleBucket = {
         tank: [],
         dps: [],
         support: [],
-        getRandomPlayerFromRole: function (role) {
+        getRandomPlayerFromRole: function (role: OverwatchRole): Player | undefined {
             if (this[role].length > 0) {
                 const randomPosition = getRandomInt(0, this[role].length);
 
@@ -96,48 +103,49 @@ function placePlayersOnTeams(teams, players) {
                 return undefined;
             }
         },
-        removePlayerFromBucket: function (playerData) {
+        removePlayerFromBucket: function (player: Player): void {
             const roles = config.roles.map(r => r.name);
 
             roles.forEach(r => {
-                this[r] = this[r].filter(p => p.btag !== playerData.btag)
+                this[r] = this[r].filter(p => p.ow?.btag !== player.ow?.btag)
             })
         },
     }
 
+    // Add each player into their respective buckets.
     players.forEach(p => p.queue.forEach(q => roleBucket[q].push(p)));
 
-    // attempt to make the teams within 200 iterations
-    for (let i = 0; i < 200; i++) {
-        const playersNeededInTeam = teams.filter(t => t.players.length < config.maxPlayersOnTeam);
+    // We need 12 players 
+    // Loop until we have full teams, or until we're not able to add a player into a role
+    // then break out of the loop
+    while (true) {
+        const teamsNeedPlayers: Array<OverwatchTeam> = teams.filter(t => t.players.length < config.maxPlayersOnTeam);
 
-        if (playersNeededInTeam.length > 0 ) {
+        if (teamsNeedPlayers.length > 0) {
             if (queuedPlayers.length > 0) {
-                // Find random Team
-                const team = playersNeededInTeam[getRandomInt(0, playersNeededInTeam.length)]
+                // Get a random team and role from the team.
+                const team: OverwatchTeam = teamsNeedPlayers[getRandomInt(0, teamsNeedPlayers.length)]; 
+                const neededRole: OverwatchRole = team.getRandomNeededRole();
+                const player: Player | undefined = roleBucket.getRandomPlayerFromRole(neededRole);
 
-                // Find random Role
-                const neededRoles = team.neededRoles();
-                const randomRoleI = getRandomInt(0, neededRoles.length);
-
-                const player = roleBucket.getRandomPlayerFromRole(neededRoles[randomRoleI]);
-                if (player) {
+                if (player) { // Do something with the queued Players list other wise.... yikes.
                     roleBucket.removePlayerFromBucket(player);
-                    team.addPlayerToTeam(player, neededRoles[randomRoleI]);
+                    team.addPlayerToTeam(player, neededRole);
                 }
                 else {
                     response.hasError = true;
-                    response.message = "Unable to finish creating teams. Not enough players available.";
+                    response.message = `No player found to place in ${neededRole}`
+                    break;
                 }
             }
             else {
                 response.hasError = true;
-                response.message = "Not enough players to fill the teams.";
+                response.message = "Not enough role selections or players in queue.";
                 break;
-            }
+            }             
         }
         else {
-            // No need to keep iterating. We have full teams.
+            // All teams are filled up!
             break;
         }
     }
@@ -145,7 +153,7 @@ function placePlayersOnTeams(teams, players) {
     return response;
 }
 
-export function getMatchConfig(): Overwatch.Config {
+export function getMatchConfig(): OverwatchConfig {
     return config;
 }
 

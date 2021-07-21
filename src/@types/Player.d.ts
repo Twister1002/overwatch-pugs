@@ -1,14 +1,21 @@
-type Player = {
+type DiscordUser = {
     discordName: string,
     discordid: string,
-    ow?: {
-        btag: string,
-        support?: number,
-        tank?: number,
-        dps?: number
-    }
-    val?: {
-        riotTag: string,
-        rank: number
-    }
+}
+
+type OverwatchPlayerData = {
+    btag: string,
+    support?: number,
+    tank?: number,
+    dps?: number
+}
+
+type ValorantPlayerData = {
+    riotTag: string,
+    rank: number
+}
+
+type Player = DiscordUser & {
+    ow?: OverwatchPlayerData,
+    val?: ValorantPlayerData
 }
