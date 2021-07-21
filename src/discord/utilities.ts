@@ -1,8 +1,11 @@
 import { User } from "discord.js";
 import fs from "fs";
 import path from "path";
+import dateTime from "../classes/DateTime";
 import commands from "../data/commands.json";
 import modPermissions from "../data/permissions.json";
+import { LogType } from "../enums/LogType";
+
 
 //The maximum is exclusive and the minimum is inclusive
 export function getRandomInt(min: number, max: number): number {
@@ -81,6 +84,48 @@ export function saveFile(fileName: string, data: object): boolean {
     }
 }
 
+export function logData(logType: LogType, message: string) {
+    const date = dateTime("m/d/Y");
+    const time = dateTime("H:i:s");
+    const logName = `${date.replace(/\//g, "")}.log`;
+    const messageToWrite = `(${date} ${time}) ${LogType[logType]}: ${message}`
+    const filePath = path.join(__dirname, "../", "../", "logs", logName)
+    const fileDir: string = path.dirname(filePath);
+
+    if (!fs.existsSync(fileDir)) {
+        fs.mkdirSync(fileDir);
+    }
+
+    if (!fs.existsSync(filePath)) {
+        fs.writeFile(filePath, messageToWrite, (err) => {
+            if (err) throw err;
+        });
+    }
+    else {
+        fs.appendFile(filePath, `\n${messageToWrite}`, (err) => {
+            if (err) throw err;
+        });
+    }
+}
+
+export function getDate(): string {
+    const dateObj: Date = new Date();
+    const month: string = (dateObj.getMonth()+1).toString().padStart(2, "0");
+    const day: string = dateObj.getDate().toString().padStart(2, "0");
+    const year: string = dateObj.getFullYear().toString().padStart(4, "0");
+
+    return `${month} ${day} ${year}`;
+}
+
+export function getTime(): string {
+    const dateObj: Date = new Date();
+    const hours: string = dateObj.getHours().toString().padStart(2, "0");
+    const minutes: string = dateObj.getMinutes().toString().padStart(2, "0");
+    const seconds: string = dateObj.getSeconds().toString().padStart(2, "0");
+
+    return `${hours} ${minutes} ${seconds}`
+}
+
 export function getCommands(includeAdmin: boolean): Array<Command> {
     const allCommands = includeAdmin ? commands : commands.filter(x => !x.isModCommand);
     return allCommands.sort((a, b) => (+a.isModCommand - +b.isModCommand));
@@ -143,10 +188,6 @@ export function removePlayer(discordUser: User): boolean {
     return saveFile("playerdata.json", allPlayerData);
 }
 
-export function logData(logType: LogType, message: string) {
-
-}
-
 /**
  * Checks a string provided for the hashtag
  * @param tag A string of the tag gamer tag
@@ -158,9 +199,9 @@ export function isValidPlayerTag(tag: string): boolean {
 
     if (hashIndex > -1) {
         // Check for at least 2 numbers
-        const tagNumbers = tag.substr(hashIndex + 1);
+        const tagName = tag.substr(hashIndex + 1);
 
-        if (tagNumbers.length > 2) {
+        if (tagName.length > 2) {
             isValid = true;
         }
     }

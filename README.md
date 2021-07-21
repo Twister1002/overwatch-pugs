@@ -5,7 +5,11 @@
  - DB Tables 
  - Match History
 - Allow mods to create new users
-- Add logging information for log txt files
+
+## Version 1.5
+Creating a better way to find out what happens to the bot. Logs are all the rage this version
+ - Created way to allow logging
+ - Created new DateTime method to obtain a specific formatted date / time string
 
 ## Version 1.4
 ### All about the commands

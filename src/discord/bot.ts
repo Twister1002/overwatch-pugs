@@ -43,7 +43,7 @@ client.on("message", (message: Message) => {
         }
         
         if (gameMethod && command && (!command.isModCommand || (isMod && command.isModCommand))) {
-            // logData(LogType.DEBUG, `User ${message.author.tag} used comamand ${command.name}`);
+            logData(LogType.DEBUG, `User ${message.author.tag} used ${gameCommand} ${commandName} ${messageData}`);
             switch (command.name) {
                 case "help": {
                     let helpCommand: Command | undefined = getCommand(messageData.shift() || command.name);
@@ -87,7 +87,7 @@ client.on("message", (message: Message) => {
         }
     }
     catch (err) {
-        console.error(`A fatal error has caused the application to crash. This is the main error catcher.\n${err.message}\n${err.stack}`)
+        logData(LogType.FATAL, `The main application has handled an uncaught error. This could cause the application to crash.\n${err.message}\n${err.stack}`);
         message.channel.send(`Oooh no ya'll! Something is broken!... well try again and see if you can fix your error.`);
     }
 })
