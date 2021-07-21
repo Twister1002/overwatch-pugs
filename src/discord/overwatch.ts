@@ -10,23 +10,23 @@ import {
 } from "./utilities";
 import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
 import overwatchConfig from "../data/overwatchconfig.json";
+const isDev: boolean = process.env.NODE_ENV === "development";
 
 let allowQueue = false;
 let playersInQueue: Array<OverwatchQueuedPlayer> = [];
 
 export default function overwatch(message: Message, command: Command, messageData: Array<string>) {
     let response: string = "";
-    let isReply: boolean = false;
-    let deleteMessage: boolean = false;
 
     switch (command.name) {
         case "info": {
+            let shouldReply: boolean = false;
             let taggedUser: User = message.mentions.users.first() || message.author;
             const playerData: Player | undefined = getPlayerDataByDiscordTag(taggedUser.tag)
 
             if (playerData && playerData.ow) {
                 if (message.author.tag === playerData.discordName) {
-                    isReply = true;
+                    shouldReply = true;
                 }
 
                 response = `BTag: ${playerData.ow.btag};`;
@@ -38,17 +38,16 @@ export default function overwatch(message: Message, command: Command, messageDat
                 response = `No record exists for ${taggedUser}.`;
 
                 if (taggedUser.tag === playerData?.discordName) {
-                    isReply = true;
+                    shouldReply = true;
                     const setCommand: Command | undefined = getCommand("set");
                     response += ` Please set your info using '!ow ${setCommand?.name} ${setCommand?.args.ow}'`;
                 }
             }
+
+            shouldReply ? message.reply(response) : message.channel.send(response);
         }
             break;
         case "set": {
-            deleteMessage = true;
-            isReply = true;
-
             // Need to find a new way to handle parameters
             const btagIndex = messageData.findIndex(p => p.toLowerCase().includes("btag"));
             const supportIndex = messageData.findIndex(p => p.toLowerCase().includes("support"));
@@ -59,34 +58,35 @@ export default function overwatch(message: Message, command: Command, messageDat
             const tankRank: number = tankIndex > -1 ? parseToNumber(messageData[tankIndex + 1]) : 0;
             const supportRank: number = supportIndex > -1 ? parseToNumber(messageData[supportIndex + 1]) : 0;
             const dpsRank: number = dpsIndex > -1 ? parseToNumber(messageData[dpsIndex + 1]) : 0;
+            const dataToSave: OverwatchPlayerData = {} as OverwatchPlayerData;
 
             if (isValidPlayerTag(bTagInfo)) {
-                const dataToSave: OverwatchPlayerData = {} as OverwatchPlayerData;
                 if (bTagInfo) { dataToSave.btag = bTagInfo; }
-                if (tankRank > 500) { dataToSave.tank = tankRank; }
-                if (supportRank > 500) { dataToSave.support = supportRank; }
-                if (dpsRank > 500) { dataToSave.dps = dpsRank; }
-                const isSaved = addPlayer(message.author, "ow", dataToSave)
+            }
 
-                if (isSaved) {
-                    const playerData: OverwatchPlayerData | undefined = getPlayerDataByDiscordTag(message.author)?.ow;
-                    
-                    if (playerData) {
-                        response =  playerData.btag ? `Battle Tag: ${playerData.btag};` : ``;
-                        response +=  playerData.tank ? ` Tank: ${playerData.tank};` : ``;
-                        response +=  playerData.dps ? ` DPS: ${playerData.dps};` : ``;
-                        response +=  playerData.support ? ` Support: ${playerData.support}` : ``;
-                    }
+            if (tankRank > 500) { dataToSave.tank = tankRank; }
+            if (supportRank > 500) { dataToSave.support = supportRank; }
+            if (dpsRank > 500) { dataToSave.dps = dpsRank; }
+            const isSaved = addPlayer(message.author, "ow", dataToSave)
+
+            if (isSaved) {
+                const playerData: OverwatchPlayerData | undefined = getPlayerDataByDiscordTag(message.author)?.ow;
+                
+                if (playerData) {
+                    response =  playerData.btag ? `Battle Tag: ${playerData.btag};` : ``;
+                    response +=  playerData.tank ? ` Tank: ${playerData.tank};` : ``;
+                    response +=  playerData.dps ? ` DPS: ${playerData.dps};` : ``;
+                    response +=  playerData.support ? ` Support: ${playerData.support}` : ``;
                 }
-                else {
-                    console.log("Error in saving user data");
-                    response = "Failed to save data";
-                }
+
+                message.delete();
             }
             else {
-                deleteMessage = false;
-                response = "You must provide your hashtag and numbers";
+                console.log("Error in saving user data");
+                response = "Failed to save data";
             }
+
+            message.reply(response);
         }
             break;
         case "startq": {
@@ -95,46 +95,44 @@ export default function overwatch(message: Message, command: Command, messageDat
             const commandInfo = getCommand("q");
 
             response = `Queue has been opened.\nTo queue for a role, please use \`!ow ${commandInfo?.name} ${commandInfo?.args.ow}\`.`;
+            message.channel.send(response);
         } 
         break;
         case "stopq": {
             allowQueue = false;
             response = "Queue has been closed";
+            message.channel.send(response);
         }
             break;
         case "quser": {
-            deleteMessage = true;
             const playerToQueue: User | undefined = message.mentions.users.first();
             messageData.shift(); // This is only needed to remove the tag
 
             if (playerToQueue) {
-                isReply = false;
                 response = addPlayerToQueue(playerToQueue, messageData as Array<OverwatchRole>);
                 response = `<@${playerToQueue}> ` + response;
+                message.delete().then(x => x.channel.send(response));
             }
             else {
-                isReply = true;
                 response = "You need mention the user to queue them."
+                message.reply(response);
             }
         }
             break;
         case "q": {
             response = addPlayerToQueue(message.author, messageData as Array<OverwatchRole>);
-            isReply = true;
-            deleteMessage = true;
+            message.delete().then(x => x.reply(response));
         }
             break;
         case "unq": {
-            isReply = true;
-            deleteMessage = true;
-
             const players = [...playersInQueue.filter(p => p.discordName !== message.author.tag)];
             playersInQueue = players;
-            response = `has been removed from queue`;
+            message.delete().then(x => x.reply("You have been removed from queue"));
         }
             break;
         case "lobby": {
             response = `${playersInQueue.length} players in queue:\n${playersInQueue.map(x => `- ${x.discordName} (${x.queue.join(",")})`).join("\n")}`;
+            message.channel.send(response);
         }
             break;
         case "startmatch": {
@@ -143,35 +141,35 @@ export default function overwatch(message: Message, command: Command, messageDat
             break;
         case "maps": {
             // Display all map's name
-            overwatchConfig.maps.forEach(m => response += `- ${m}\n`)
+            response = overwatchConfig.maps.map(m => `- ${m}`).join("\n");
+            message.channel.send(response);
         }
-            break;
             break;
         case "testmatch": {
             const testPlayerData = getAllPlayerData().filter(x => x.ow);
 
             allowQueue = true;
-            // testPlayerData.forEach(p => addPlayerToQueue(p, ["all"]))
+            testPlayerData.forEach(p => addPlayerToQueue(p, ["all"]))
 
             // Test case for invalid match and could not be created.
-            const playersToTest = [
-                { discordName: "Jesus Christ#1216", queue: ["tank", "dps"] },
-                { discordName: "Skateking-#7517", queue: ["dps"] },
-                { discordName: "Sparlin#3892", queue: ["all"] },
-                { discordName: "Arkonon#5896", queue: ["all"] },
-                { discordName: "Edant#3834", queue: ["support"] },
-                { discordName: "Sen#4444", queue: ["dps", "tank"] },
-                { discordName: "Flowingfiber#8311", queue: ["dps","support"] },
-                { discordName: "Sirloin77#4166", queue: ["all"] },
-                { discordName: "Rain#0006", queue: ["all"] },
-                { discordName: "!Spoodini#9821", queue: ["dps"] },
-                { discordName: "Slim_and_Shady#5291", queue: ["tank","dps"] },
-                { discordName: "Nanybanany#3765", queue: ["support"] },
-            ]
+            // const playersToTest = [
+            //     { discordName: "Jesus Christ#1216", queue: ["tank", "dps"] },
+            //     { discordName: "Skateking-#7517", queue: ["dps"] },
+            //     { discordName: "Sparlin#3892", queue: ["all"] },
+            //     { discordName: "Arkonon#5896", queue: ["all"] },
+            //     { discordName: "Edant#3834", queue: ["support"] },
+            //     { discordName: "Sen#4444", queue: ["dps", "tank"] },
+            //     { discordName: "Flowingfiber#8311", queue: ["dps","support"] },
+            //     { discordName: "Sirloin77#4166", queue: ["all"] },
+            //     { discordName: "Rain#0006", queue: ["all"] },
+            //     { discordName: "!Spoodini#9821", queue: ["dps"] },
+            //     { discordName: "Slim_and_Shady#5291", queue: ["tank","dps"] },
+            //     { discordName: "Nanybanany#3765", queue: ["support"] },
+            // ]
 
-            playersToTest.forEach(p => {
-                addPlayerToQueue(testPlayerData.find(pl => p.discordName === pl.discordName) as Player, p.queue as Array<OverwatchRole>);
-            })
+            // playersToTest.forEach(p => {
+            //     addPlayerToQueue(testPlayerData.find(pl => p.discordName === pl.discordName) as Player, p.queue as Array<OverwatchRole>);
+            // })
             
             allowQueue = false;
 
@@ -203,8 +201,6 @@ export default function overwatch(message: Message, command: Command, messageDat
             break;
         
     }
-
-    sendMessageToServer(message, response, isReply, deleteMessage);
 }
 
 function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole>) {
@@ -253,7 +249,6 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
 }
 
 function createMatch(channel: TextChannel | DMChannel | NewsChannel): void {
-
     if (!allowQueue) {
         let createdMatches: Array<OverwatchMatch> = [];
         let bestMatch: OverwatchMatch | undefined;
@@ -295,9 +290,9 @@ function createMatch(channel: TextChannel | DMChannel | NewsChannel): void {
                 bestMatch.teams.forEach((team) => {
                     embeddedMessage.addField("\u200B", "\u200B", false)
                     embeddedMessage.addField(`Team ${team.name}`, team.avgSR(), false);
-                    embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank as number)}\n`).join("\n") || "None", true)
-                    embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps as number)}\n`).join("\n") || "None", true)
-                    embeddedMessage.addField(`Supports:`, team.support.map(x => `${(false ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support as number)}\n`).join("\n") || "None", true)
+                    embeddedMessage.addField(`Tanks:`, team.tank.map(x => `${(x.discordid && !isDev ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.tank} - ${getSRTier(x.ow?.tank as number)}\n`).join("\n") || "None", true)
+                    embeddedMessage.addField(`DPS:`, team.dps.map(x => `${(x.discordid && !isDev ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.dps} - ${getSRTier(x.ow?.dps as number)}\n`).join("\n") || "None", true)
+                    embeddedMessage.addField(`Supports:`, team.support.map(x => `${(x.discordid && !isDev ? `<@${x.discordid}>` : `${x.discordName}`)}\n${x.ow?.btag}\n${x.ow?.support} - ${getSRTier(x.ow?.support as number)}\n`).join("\n") || "None", true)
                 })
 
                 console.log(`Created match after ${createdMatches.length} attempts`)
@@ -315,30 +310,6 @@ function createMatch(channel: TextChannel | DMChannel | NewsChannel): void {
     }
     else {
         channel.send("Queue must be closed to start a match.");
-    }
-}
-
-function sendMessageToServer(message: Message, response: string, isReply: boolean = false, deleteMessage: boolean = false) {
-    if (response && response.length > 0) {
-        if (response.length > 2000) {
-            console.log(`Message exceeds limits of one message ${response.length}`);
-            message.channel.send("Unable to send message due to size of message.");
-        }
-        else if (response.length === 0) {
-            console.log(`No message to deliver`);
-        }
-        else {
-            if (isReply) {
-                message.reply(response).catch(err => console.error(err));
-            }
-            else {
-                message.channel.send(response).catch(err => console.error(err));
-            }
-
-            if (deleteMessage) {
-                message.delete().catch(err => console.error(err));
-            }
-        }
     }
 }
 

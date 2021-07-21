@@ -106,13 +106,6 @@ export default function valorant(message: Message, command: Command, messageData
             }
         }
             break;
-        case "users": {
-            const players = getAllPlayerData().filter(x => x.val);
-            let response = `Users registered for Valorant: ${players.length}\n${players.map(x => `- ${x.discordName} (${x.val?.riotTag})`).join("\n")}`;
-
-            message.channel.send(response);
-        }
-            break;
         case "set": {
             const riotTag: string | undefined = messageData.shift()?.replace(/[<>]/g, "") || "";
             const rankString: string | undefined = messageData.shift();
@@ -137,15 +130,6 @@ export default function valorant(message: Message, command: Command, messageData
             else {
                 message.reply("You must provide your hashtag and numbers");
             }
-        }
-            break;
-        case "remove": {
-            // if (removePlayer(message.author)) {
-            //     message.reply("You have been removed from our system");
-            // }
-            // else { 
-            //     message.reply("There was an error removing you from the system");
-            // }
         }
             break;
         case "startmatch": {

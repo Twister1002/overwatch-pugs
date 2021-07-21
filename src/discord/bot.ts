@@ -1,8 +1,9 @@
 require("dotenv").config();
 import overwatch from "./overwatch";
 import valorant from "./valorant";
-import { getCommands, getCommand, isUserMod, getAllPlayerData, removePlayer } from "./utilities";
+import { getCommands, getCommand, isUserMod, getAllPlayerData, removePlayer, logData } from "./utilities";
 import { Client, Message } from "discord.js";
+import { LogType } from "../enums/LogType";
 const isDev: boolean = process.env.NODE_ENV === "development";
 const client: Client = new Client();
 const botID: Array<string> = ["309700308697743362", "309700551799734274"]
@@ -42,11 +43,18 @@ client.on("message", (message: Message) => {
         }
         
         if (gameMethod && command && (!command.isModCommand || (isMod && command.isModCommand))) {
+            // logData(LogType.DEBUG, `User ${message.author.tag} used comamand ${command.name}`);
             switch (command.name) {
                 case "help": {
-                    let response = command.help[gameName];
-                    if (command.args[gameName]) {
-                        response += `\n${gameCommand} ${command.name} ${command.args}`
+                    let helpCommand: Command | undefined = getCommand(messageData.shift() || command.name);
+                    let response: string = "";
+
+                    if (helpCommand) {
+                        response = helpCommand.help[gameName];
+
+                        if (helpCommand.args[gameName]) {
+                            response += `\n${gameCommand} ${helpCommand.name} ${helpCommand.args[gameName]}`
+                        }
                     }
 
                     message.reply(response);
@@ -74,7 +82,7 @@ client.on("message", (message: Message) => {
                     break;
             }
         }
-        else {
+        else if (gameMethod && command) {
             message.reply("You do not have valid permissions to use this command or the command does not exist.");
         }
     }
