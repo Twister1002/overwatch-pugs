@@ -18,6 +18,7 @@ export default function valorant(message: Message, command: Command, messageData
     switch (command.name) {
         case "startq": {
             canQueue = true;
+            playersInQueue = [];
             message.channel.send("Queue has been opened for Valorant");
         }
             break
