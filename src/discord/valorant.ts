@@ -3,9 +3,9 @@ import {
     getRandomInt, 
     getPlayerDataByDiscordTag, 
     addPlayer, 
-    removePlayer, 
     getCommand, 
-    isValidPlayerTag 
+    isValidPlayerTag, 
+    toProperCase
 } from "./utilities";
 import valorantConfig from "../data/valorantconfig.json";
 import { Message, MessageEmbed, User } from "discord.js";
@@ -266,7 +266,8 @@ function createMatch(message: Message): void {
 }
 
 function getRankName(rank: number): ValorantRank {
-    return config.ranks[rank] as ValorantRank;
+    const rankName: string = toProperCase(config.ranks[rank]);
+    return rankName as ValorantRank;
 }
 
 module.exports = valorant;
