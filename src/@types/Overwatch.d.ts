@@ -1,6 +1,6 @@
 
 type OverwatchRole = "support" | "dps" | "tank" | "all";
-type OverwatchTier = "B" | "S" | "G" | "P" | "D" | "M" | "GM";
+type OverwatchTier = "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Master" | "Grand Master";
 
 type OverwatchConfig = {
     maxTeams: number;

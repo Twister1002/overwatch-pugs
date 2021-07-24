@@ -26,30 +26,31 @@ export function getSRTier(sr: number): OverwatchTier {
     let tier: OverwatchTier;
     if (sr < 1500) {
         // Bronze
-        tier = "B";
+        tier = "Bronze";
     }
     else if (sr >= 1500 && sr < 2000) {
         // Silver
-        tier = "S";
+        tier = "Silver";
     }
     else if (sr >= 2000 && sr < 2500) {
         // Gold
-        tier = "G";
+        tier = "Gold";
     }
     else if (sr >= 2500 && sr < 3000) {
-        // Plat
-        tier = "P";
+        // Platinum
+        tier = "Platinum";
     }
     else if (sr >= 3000 && sr < 3500) {
-        // Masters
-        tier = "D";
+        // Diamond
+        tier = "Diamond";
     }
     else if(sr >= 3500 && sr < 4000) {
-        tier = "M";
+        // Master
+        tier = "Master";
     }
     else {
         // GM
-        tier = "GM";
+        tier = "Grand Master";
     }
 
     return tier;
