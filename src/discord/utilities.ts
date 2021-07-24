@@ -208,3 +208,7 @@ export function isValidPlayerTag(tag: string): boolean {
     
     return isValid;
 }
+
+export function toProperCase(val: string): string {
+    return val.split(" ").map(x => x.substr(0, 1).toUpperCase() + x.substr(1).toLowerCase()).join(" ");
+}
