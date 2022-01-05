@@ -40,7 +40,7 @@ export default function overwatch(message: Message, command: Command, messageDat
                 if (taggedUser.tag === playerData?.discordName) {
                     shouldReply = true;
                     const setCommand: Command | undefined = getCommand("set");
-                    response += ` Please set your info using '!ow ${setCommand?.name} ${setCommand?.args.ow}'`;
+                    response += ` Please set your info using '.${setCommand?.name} ${setCommand?.args.ow}'`;
                 }
             }
 
@@ -177,16 +177,15 @@ export default function overwatch(message: Message, command: Command, messageDat
         }
             break;
         case "setup": {
-            const settings: OverwatchConfig = {} as OverwatchConfig;
+            const settings: {[k: string]: any} = {};
 
             if (messageData.length > 0) {
                 while (messageData.length > 0) {
-                    const setting: string | undefined = messageData.shift();
+                    const settingKey: string | undefined = messageData.shift();
                     const value: string = messageData.shift() || "";
 
-                    if (setting && settings[setting]) {
-
-                        settings[setting] = Number.isNaN(parseInt(value)) ? value : Number(value);
+                    if (settingKey) {
+                        settings[settingKey] = Number.isNaN(parseInt(value)) ? value : Number(value);
                     }
                 }
 
@@ -197,6 +196,8 @@ export default function overwatch(message: Message, command: Command, messageDat
 
                 response = JSON.stringify(updatedSettings, (key, value) => (value || ''), 4).replace(/"([^"]+)":/g, '$1:');
             }
+
+            message.channel.send(response);
         }
             break;
         
@@ -238,7 +239,7 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
         }
         else {
             const setCommand = getCommand("set");
-            response = `No record exists for ${player?.discordName}. Please set your info using '!ow ${setCommand?.name} ${setCommand?.args.ow}'`;
+            response = `No record exists for ${player?.discordName}. Please set your info using '.${setCommand?.name} ${setCommand?.args.ow}'`;
         }
     }
     else {

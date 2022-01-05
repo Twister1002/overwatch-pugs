@@ -166,7 +166,7 @@ export function setMatchConfig(settings): string {
     }
     else {
         Object.entries(settings).forEach(([setting, value]) => {
-            switch (setting) {
+            switch (setting.toLowerCase()) {
                 case "maxsrdiff": 
                     config.maxSRDiff = value as number;
                     messages.push(`${setting}: ${value}`);

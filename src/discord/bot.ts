@@ -77,7 +77,13 @@ client.on("message", (message: Message) => {
                     break;
                 case "remove": {
                     const isRemoved = removePlayer(message.author);
-                    message.reply(`You have ${isRemoved ? "" : "NOT "}been removed.`);
+
+                    if (isRemoved) {
+                        message.reply(`Your info has been removed.`);
+                    }
+                    else {
+                        message.reply(`There was an error in removing you from the server.`);
+                    }
                 }
                     break;
                 default: {
