@@ -1,6 +1,6 @@
 require("dotenv").config();
 import overwatch from "./overwatch";
-import valorant from "./valorant";
+// import valorant from "./valorant";
 import { getCommands, getCommand, isUserMod, getAllPlayerData, removePlayer, logData } from "./utilities";
 import { Client, Message } from "discord.js";
 import { LogType } from "../enums/LogType";
@@ -13,7 +13,7 @@ let loginWaitInterval: number = 10 * 1000;
 
 client.on("ready", () => {
     console.log(`Bot has logged in ${client.user?.tag}`)
-    client.user?.setActivity('!pugs', { type: 'LISTENING'})
+    client.user?.setActivity('Version 1.5.x', { type: 'LISTENING'})
 })
 
 client.on("message", (message: Message) => {
@@ -22,21 +22,21 @@ client.on("message", (message: Message) => {
     }
     
     try {
-        const messageData: Array<string> = message.content.split(" ");
-        const gameCommand: string | undefined = messageData.shift()?.toLowerCase() || "";
+        const messageData: Array<string> = message.content.substr(1).split(" ");
+        const gameCommand: string | undefined = ".ow"; // messageData.shift()?.toLowerCase() || "";
         const commandName: string | undefined = messageData.shift()?.toLowerCase() || "";
         const command: Command | undefined = getCommand(commandName);
         const isMod: boolean = isUserMod(message.member);
         const gameName: string = gameCommand.substr(1);
         let gameMethod: ((m: Message, c: Command, d: Array<string>) => void) | undefined;
-
+        
         switch (gameCommand) {
-            case "!ow":
+            case ".ow":
                 gameMethod = overwatch;
                 break;
-            case "!val": 
-                gameMethod = valorant;
-                break;
+            // case "!val": 
+            //     gameMethod = valorant;
+            //     break;
             default: 
                 gameMethod = undefined;
                 break;
@@ -53,11 +53,15 @@ client.on("message", (message: Message) => {
                         response = helpCommand.help[gameName];
 
                         if (helpCommand.args[gameName]) {
-                            response += `\n${gameCommand} ${helpCommand.name} ${helpCommand.args[gameName]}`
+                            // response += `\n${gameCommand} ${helpCommand.name} ${helpCommand.args[gameName]}`
+                            response += `\n.${helpCommand.name} ${helpCommand.args[gameName]}`
                         }
-                    }
 
-                    message.reply(response);
+                        message.reply(response);
+                    }
+                    else {
+                        message.reply(`No command found for ${command.name}`);
+                    }
                 }
                     break;
                 case "commands": {
@@ -73,7 +77,7 @@ client.on("message", (message: Message) => {
                     break;
                 case "remove": {
                     const isRemoved = removePlayer(message.author);
-                    message.reply(`You have ${isRemoved ? "" : "NOT "} been removed.`);
+                    message.reply(`You have ${isRemoved ? "" : "NOT "}been removed.`);
                 }
                     break;
                 default: {

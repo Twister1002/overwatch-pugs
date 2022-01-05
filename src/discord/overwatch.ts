@@ -94,7 +94,7 @@ export default function overwatch(message: Message, command: Command, messageDat
             allowQueue = true;
             const commandInfo = getCommand("q");
 
-            response = `Queue has been opened.\nTo queue for a role, please use \`!ow ${commandInfo?.name} ${commandInfo?.args.ow}\`.`;
+            response = `Queue has been opened.\nTo queue for a role, please use \`.${commandInfo?.name} ${commandInfo?.args.ow}\`.`;
             message.channel.send(response);
         } 
         break;

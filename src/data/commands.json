@@ -36,15 +36,15 @@
         }
     },
     {
-        "name": "users",
-        "isModCommand": true,
+        "name": "set",
+        "isModCommand": false,
         "help": {
-            "ow": "Shows all users who are registered in the bot",
-            "val": "Shows all users who are registered in the bot"
+            "ow": "Sets your info for match making",
+            "val": "Sets your info for match making"
         },
         "args": {
-            "ow": "",
-            "val": ""
+            "ow": "btag <Battle.NET tag> support <SR> dps <SR> tank <SR>",
+            "val": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
         }
     },
     {
@@ -57,6 +57,54 @@
         "args": {
             "ow": "",
             "val": ""
+        }
+    },
+    {
+        "name": "lobby",
+        "isModCommand": false,
+        "help": {
+            "ow": "Shows all players in queue",
+            "val": "Shows all players in queue"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "q",
+        "isModCommand": false,
+        "help": {
+            "ow": "Queues you into the system for match making",
+            "val": "Queues you into the system for match making"
+        },
+        "args": {
+            "ow": "<support | dps | tank | all>",
+            "val": ""
+        }
+    },
+    {
+        "name": "unq",
+        "isModCommand": false,
+        "help": {
+            "ow": "Removes the player from queue",
+            "val": "Removes the player from queue"
+        },
+        "args": {
+            "ow": "",
+            "val": ""
+        }
+    },
+    {
+        "name": "quser",
+        "isModCommand": true,
+        "help": {
+            "ow": "Queues a specific user for match making",
+            "val": "Queues a specific user for match making"
+        },
+        "args": {
+            "ow": "<DiscordUser> <support | dps | tank | all>",
+            "val": "<DiscordUser>"
         }
     },
     {
@@ -77,18 +125,6 @@
         "help": {
             "ow": "Stops the queue and disallows players to queue for match making",
             "val": "Stops the queue and disallows players to queue for match making"
-        },
-        "args": {
-            "ow": "",
-            "val": ""
-        }
-    },
-    {
-        "name": "unq",
-        "isModCommand": false,
-        "help": {
-            "ow": "Removes the player from queue",
-            "val": "Removes the player from queue"
         },
         "args": {
             "ow": "",
@@ -120,18 +156,6 @@
         }
     },
     {
-        "name": "lobby",
-        "isModCommand": false,
-        "help": {
-            "ow": "Shows all players in queue",
-            "val": "Shows all players in queue"
-        },
-        "args": {
-            "ow": "",
-            "val": ""
-        }
-    },
-    {
         "name": "maps",
         "isModCommand": false,
         "help": {
@@ -144,39 +168,15 @@
         }
     },
     {
-        "name": "set",
-        "isModCommand": false,
-        "help": {
-            "ow": "Sets your info for match making",
-            "val": "Sets your info for match making"
-        },
-        "args": {
-            "ow": "btag <Battle.NET tag> support <SR> dps <SR> tank <SR>",
-            "val": "<RiotId> <iron | bronze | silver | gold | plat | diamond | immortal | radiant>"
-        }
-    },
-    {
-        "name": "q",
-        "isModCommand": false,
-        "help": {
-            "ow": "Queues you into the system for match making",
-            "val": "Queues you into the system for match making"
-        },
-        "args": {
-            "ow": "<support | dps | tank | all>",
-            "val": ""
-        }
-    },
-    {
-        "name": "quser",
+        "name": "users",
         "isModCommand": true,
         "help": {
-            "ow": "Queues a specific user for match making",
-            "val": "Queues a specific user for match making"
+            "ow": "Shows all users who are registered in the bot",
+            "val": "Shows all users who are registered in the bot"
         },
         "args": {
-            "ow": "<DiscordUser> <support | dps | tank | all>",
-            "val": "<DiscordUser>"
+            "ow": "",
+            "val": ""
         }
     },
     {
