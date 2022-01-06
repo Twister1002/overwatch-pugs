@@ -35,7 +35,7 @@ export default function overwatch(message: Message, command: Command, messageDat
                 response +=  playerData.ow.support ? ` Support: ${playerData.ow.support}` : ``;
             }
             else {
-                response = `No record exists for ${taggedUser}.`;
+                response = `No record exists for <@${taggedUser.id}>.`;
 
                 if (taggedUser.tag === playerData?.discordName) {
                     shouldReply = true;
@@ -239,7 +239,7 @@ function addPlayerToQueue(discordUser: User | Player, roles: Array<OverwatchRole
         }
         else {
             const setCommand = getCommand("set");
-            response = `No record exists for ${player?.discordName}. Please set your info using '.${setCommand?.name} ${setCommand?.args.ow}'`;
+            response = `No record exists for ${discordUser instanceof User ? discordUser.username : ""}. Please set your info using '.${setCommand?.name} ${setCommand?.args.ow}'`;
         }
     }
     else {

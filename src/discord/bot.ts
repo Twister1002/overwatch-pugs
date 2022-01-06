@@ -22,14 +22,15 @@ client.on("message", (message: Message) => {
     }
     
     try {
+        const isValidCommandStart = message.content.substr(0, 1);
         const messageData: Array<string> = message.content.substr(1).split(" ");
-        const gameCommand: string | undefined = ".ow"; // messageData.shift()?.toLowerCase() || "";
+        const gameCommand: string | undefined = isValidCommandStart ? ".ow" : ""; //messageData.shift()?.toLowerCase() || "";
         const commandName: string | undefined = messageData.shift()?.toLowerCase() || "";
         const command: Command | undefined = getCommand(commandName);
         const isMod: boolean = isUserMod(message.member);
         const gameName: string = gameCommand.substr(1);
         let gameMethod: ((m: Message, c: Command, d: Array<string>) => void) | undefined;
-        
+    
         switch (gameCommand) {
             case ".ow":
                 gameMethod = overwatch;
@@ -94,6 +95,9 @@ client.on("message", (message: Message) => {
         }
         else if (gameMethod && command) {
             message.reply("You do not have valid permissions to use this command or the command does not exist.");
+        }
+        else if (gameMethod && !command) {
+            message.reply("This command doesn't exists")
         }
     }
     catch (err) {
