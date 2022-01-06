@@ -22,7 +22,7 @@ client.on("message", (message: Message) => {
     }
     
     try {
-        const isValidCommandStart = message.content.substr(0, 1);
+        const isValidCommandStart = message.content.substr(0, 1) === ".";
         const messageData: Array<string> = message.content.substr(1).split(" ");
         const gameCommand: string | undefined = isValidCommandStart ? ".ow" : ""; //messageData.shift()?.toLowerCase() || "";
         const commandName: string | undefined = messageData.shift()?.toLowerCase() || "";
