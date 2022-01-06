@@ -7,8 +7,8 @@
             "val": "Shows all the available commands for the user"
         },
         "args": {
-            "ow": "Shows all available commands to the user",
-            "val": "Shows all available commands to the user"
+            "ow": "",
+            "val": ""
         }
     },
     {
@@ -187,7 +187,7 @@
             "val": "<maxsrdiff | teams | support | tank | dps> <value>"
         },
         "args": {
-            "ow": "<srdiff | teams | support | tank | dps> <value>",
+            "ow": "<maxsrdiff | teams | support | tank | dps> <value>",
             "val": ""
         }
     }
