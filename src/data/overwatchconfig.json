@@ -40,7 +40,7 @@
         "Volskaya Industries",
         "Watchpoint: Gibraltar"
     ],
-    "tanks": [
+    "tank": [
         "Reinhardt",
         "Winston",
         "Zarya",
@@ -50,7 +50,7 @@
         "Wrecking Ball",
         "Sigma"
     ],
-    "supports": [
+    "support": [
         "Mercy",
         "Zenyatta",
         "Lúcio",
