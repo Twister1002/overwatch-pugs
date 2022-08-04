@@ -39,5 +39,43 @@
         "Temple of Anubis",
         "Volskaya Industries",
         "Watchpoint: Gibraltar"
+    ],
+    "tanks": [
+        "Reinhardt",
+        "Winston",
+        "Zarya",
+        "Roadhog",
+        "D.Va",
+        "Orisa",
+        "Wrecking Ball",
+        "Sigma"
+    ],
+    "supports": [
+        "Mercy",
+        "Zenyatta",
+        "Lúcio",
+        "Ana",
+        "Moira",
+        "Brigitte",
+        "Baptiste"
+    ],
+    "dps": [
+        "Tracer",
+        "Reaper",
+        "Widowmaker",
+        "Pharah",
+        "Torbjörn",
+        "Hanzo",
+        "Bastion",
+        "Symmetra",
+        "Cassidy",
+        "Soldier: 76",
+        "Junkrat",
+        "Mei",
+        "Genji",
+        "Sombra",
+        "Doomfist",
+        "Ashe",
+        "Echo"
     ]
 }

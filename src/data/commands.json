@@ -190,5 +190,17 @@
             "ow": "<maxsrdiff | teams | support | tank | dps> <value>",
             "val": ""
         }
+    },
+    {
+        "name": "roulette",
+        "isModCommand": false,
+        "help": {
+            "ow": "",
+            "val": ""
+        },
+        "args": {
+            "ow": "<tank | support | tank>",
+            "val": ""
+        }
     }
 ]

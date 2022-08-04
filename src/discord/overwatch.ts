@@ -6,7 +6,8 @@ import {
     getPlayerDataByDiscordTag,
     getAllPlayerData,
     addPlayer, 
-    isValidPlayerTag
+    isValidPlayerTag,
+    getRandomInt
 } from "./utilities";
 import { createOverWatchMatch, setMatchConfig, getMatchConfig } from "./match";
 import overwatchConfig from "../data/overwatchconfig.json";
@@ -200,7 +201,20 @@ export default function overwatch(message: Message, command: Command, messageDat
             message.channel.send(response);
         }
             break;
-        
+        case "roulette": {
+            const classType: string | undefined = messageData.shift();
+            if (classType) {
+                const random: number = getRandomInt(0, overwatchConfig[classType].length);
+                const randomCharacter = overwatchConfig[classType][random];
+                response = `${randomCharacter} has chosen you...`;
+            }
+            else {
+                response = `Invalid class type: ${classType}`
+            }
+
+            message.channel.send(response);
+        }
+            break;
     }
 }
 
